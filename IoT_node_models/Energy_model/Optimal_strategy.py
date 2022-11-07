@@ -8,11 +8,8 @@ import numpy as np
 import Energy_node as eNode
 import sys
 import os
-sys.path.append(os.path.abspath("LoRa"))
-sys.path.append(os.path.abspath("Wireless_link"))
-sys.path.append(os.path.abspath("Wireless_link/Path_loss_model"))
 import LoRa_library as LoRa
-import Path_loss_library as plLib 
+import logNormal_PL as logPL
 import inspect
 import scipy.interpolate
 import plotly.graph_objects as go
@@ -88,7 +85,7 @@ def find_Opti_SF_PTX(PL,SF_possible=SF,PTX_possible=PTX,H=H,I_PTX=[],verbose=Fal
 if __name__ == '__main__':
 
     def PL_model(d):
-        return (plLib.path_loss_Model(d=d,f = 8.68e8, model = "PLE", arg=[3]))[0]
+        return logPL.path_loss_PLd0(d=d, PLd0=94.40,d0=1, n=2.03)
 
     d= np.arange(10,25000,10)
     result = np.zeros((3,len(d)))

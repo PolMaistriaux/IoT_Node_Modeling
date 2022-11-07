@@ -13,15 +13,31 @@ from plotly.offline import plot
 
 import sys
 import os
+
 file_path = os.path.abspath(__file__)
-parent_dir_path         = os.path.dirname(os.path.dirname(file_path))
-path_to_import_mainDir  = os.path.dirname(parent_dir_path)
-
+parent_dir_path        = os.path.dirname(file_path)
+path_to_import_mainDir = os.path.dirname(os.path.dirname(parent_dir_path))
 sys.path.append(path_to_import_mainDir)
+
 from MyColors           import *
+###################################################################################################
+# INFORMATION
+###################################################################################################
+#
+# The modeling done here is made over a day but it is purely arbitrary
+#
+###################################################################################################
 
 
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Given state of a module described by:
+#   -Current consumption
+#   -Operating voltage
+# Additional variables used:
+#   -Duration if it has a fixed one (not mandatory)
+#   -energy_day   : variable use to computes the overall energy consumed by employing this state in the current use phase scenario
+#   -t_active_day : variable use to computes the overall time spent in this state in the current use phase scenario
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Module_state:
     def __init__(self,name = "None", i=0, v=0, duration=None): # constructor
@@ -38,6 +54,14 @@ class Module_state:
     def add_active_time_day(self,state_duration,task_rate):
         self.t_active_day = self.t_active_day +state_duration*task_rate
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Given module of the node described by:
+#   -Current consumption in sleep mode
+#   -Operating voltage in sleep mode
+#   -List of the different module state in which it can operate (sleep is referred a default state)
+# Additional variables used:
+#   -energy_day   : overall energy consumed by the module over the day
+#   -t_active_day : overall time spent in active (not in sleep state) during the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Node_module:
     def __init__(self,name = "None", v=0, i_sleep =0): # constructor
@@ -95,6 +119,10 @@ class Node_module:
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Given subtask : part of a task only impliying a single module
+#   -Module and state used
+#   -Time spent in this state
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Node_subtask:
     def __init__(self,name = "None", module = None, moduleState=None, stateDuration=0):
         self.name = name
@@ -104,6 +132,18 @@ class Node_subtask:
 
 
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Given task of the node described by:
+#   -The list of module used
+#   -The list of all modules (to account for sleep power of unused modules)
+#   -The list of substasks : different modules states used
+#   -The overall task duration : should not exceed the sum all subtasks durations
+#   -The task rate : how many times per day is the task performed
+#   -List of the different module state in which it can operate (sleep is referred a default state)
+# Additional variables used:
+#   -energy_task   : energy consumed to perform the task once
+#   -energy_task   : energy consumed over the day to perform at the given task rate
+#   -moduleActiveTime : keeps track of the times spent by each module in active mode (not sleep)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Node_task:
     def __init__(self,name = "None", node_modules= [], moduleUsed = [], subtasks=[], taskDuration = 0, task_rate =0):
@@ -116,6 +156,7 @@ class Node_task:
         self.energy_task   = 0
         self.energy_day    = 0
         self.task_rate = task_rate
+
 
     def compute_energy_task(self):
         energy = 0
@@ -151,7 +192,12 @@ class Node_task:
                 return subtask
         return None
 
-
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Given node profile described by:
+#   -The list of module used
+#   -The list of tasks performed
+# Additional variables used:
+#   -energy_day    : energy consumed over the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Node_profile:
     def __init__(self,name = "None",module_list = []): # constructor

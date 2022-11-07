@@ -18,25 +18,17 @@ from plotly.offline import plot
 
 import sys
 import os
+
 file_path = os.path.abspath(__file__)
-parent_dir_path        = os.path.dirname(os.path.dirname(file_path))
+parent_dir_path        = os.path.dirname(file_path)
 path_to_import_mainDir = os.path.dirname(parent_dir_path)
-path_to_import_carac   = os.path.join(parent_dir_path,"Characterization")
-path_to_import_LoRa    = os.path.join(os.path.dirname(parent_dir_path),"LoRa")
-path_to_import_PL      = os.path.join(os.path.dirname(parent_dir_path),"Wireless_link")
-path_to_import_PL_model= os.path.join(path_to_import_PL,"Path_loss_model")
-
-path_to_save_svg = "D:\Pol\Documents\Research\Paper\ForestMe_Node\Figures\Generated_SVG"
-
 sys.path.append(path_to_import_mainDir)
-sys.path.append(path_to_import_carac)
-sys.path.append(path_to_import_LoRa)
-sys.path.append(path_to_import_PL)
-sys.path.append(path_to_import_PL_model)
+sys.path.append("IoT_node_models/Energy_model")
+sys.path.append("IoT_node_models/Characterization")
+sys.path.append("Tests")
 
 import LoRa_library as LoRa
 import logNormal_PL as logPL
-import Path_loss_library as plLib 
 import Optimal_strategy as optLoRa
 
 from MyColors           import *
@@ -48,8 +40,9 @@ from Apollo3 import *
 from BME680  import *
 from RFM95   import *
 
-####################################################
+path_to_save_svg = "SavedFiles"
 
+####################################################
 
 def node_power(Node, d= 10 ,PL_model=None, PTX=[] , I_PTX=[], doPlot = False, verbose = False):
 
@@ -128,7 +121,7 @@ def sweep_dnode(Node, dmax, d_step ,nAA = [], PL_model=None, PTX=[] , I_PTX=[], 
     #ax2.vlines(np.array(SF_change) /1000,ymin = ax2_ylim*0.1, ymax = ax2_ylim    , color = "red" ,  linestyle = "dashed")
     #ax2.vlines(np.array(Ptx_change)/1000,ymin = 0           , ymax = ax2_ylim*0.9, color = "black", linestyle = "dashed")
     if(filename != None):
-        to_save = os.path.join(path_to_save_svg , filename+".svg")
+        to_save= filename+".svg"
         plt.savefig(to_save, format="svg")  
     
 ####################################################
@@ -183,7 +176,7 @@ def sweep_fdata(Node, fmax, f_step, Task_tx = None,nAA=[],d = 1000,PL_model=None
     ax.set_title("Fdata and Ebatt : self-discharge rate = %.1f %% \n dnode = %.1f m"%(Node.Battery.selfdischarge_p_year,d))
 
     if(filename != None):
-        to_save = os.path.join(path_to_save_svg , filename+".svg")
+        to_save= filename+".svg"
         plt.savefig(to_save, format="svg")  
 
 ####################################################
@@ -213,7 +206,7 @@ def sweep_ebatt(Node, nAAmax,d = 1000,PL_model=None, PTX=[] , I_PTX=[], doPlot =
             #marker="o",markersize=2)
     ax2.set_ylabel("Average power [uW]",color="blue",fontsize=14)
     if(filename != None):
-        to_save = os.path.join(path_to_save_svg , filename+".svg")
+        to_save= filename+".svg"
         plt.savefig(to_save, format="svg")  
 
 ####################################################
@@ -293,7 +286,7 @@ def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA
     #ax.vlines(np.array(SF_change) /1000,ymin = ax2_ylim*0.1, ymax = ax2_ylim    , color = "red" ,  linestyle = "dashed")
     #ax.vlines(np.array(Ptx_change)/1000,ymin = 0           , ymax = ax2_ylim*0.9, color = "black", linestyle = "dashed")
     if(filename != None):
-        to_save = os.path.join(path_to_save_svg , filename+".svg")
+        to_save= filename+".svg"
         plt.savefig(to_save, format="svg")  
 
 ####################################################
@@ -350,7 +343,7 @@ def sweep_dnode_fdata(Node, dmax, d_step ,fdata = [], Task_tx = None, PL_model=N
     #ax.vlines(np.array(SF_change) /1000,ymin = ax2_ylim*0.1, ymax = ax2_ylim    , color = "red" ,  linestyle = "dashed")
     #ax.vlines(np.array(Ptx_change)/1000,ymin = 0           , ymax = ax2_ylim*0.9, color = "black", linestyle = "dashed")
     if(filename != None):
-        to_save = os.path.join(path_to_save_svg , filename+".svg")
+        to_save= filename+".svg"
         plt.savefig(to_save, format="svg")  
 # %%
 if __name__ == '__main__':
@@ -375,8 +368,7 @@ if __name__ == '__main__':
     #node.add_task(task_TPH_3V3)
 
     def PL_model(d):
-        return (plLib.path_loss_Model(d=d,f = 8.68e8, model = "Callebaut"))[0]
-        #return (plLib.path_loss_Model(d=d,f = 8.68e8, model = "PLE", arg=[3]))[0]
+        return logPL.path_loss_PLd0(d=d, PLd0=94.40,d0=1, n=2.03)
 
     figsize = (6,5)
     node_power(Node=node, d= 1500 ,PL_model=PL_model, PTX=PTX_PABOOST_configured , I_PTX=I_PABoost_3V3, doPlot = True,verbose=True)

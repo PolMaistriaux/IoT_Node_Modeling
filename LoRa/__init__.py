@@ -1,1 +1,0 @@
-print("run __init_py in package_1")

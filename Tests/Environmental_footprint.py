@@ -18,40 +18,29 @@ from plotly.offline import plot
 
 import sys
 import os
+
 file_path = os.path.abspath(__file__)
 parent_dir_path        = os.path.dirname(file_path)
 path_to_import_mainDir = os.path.dirname(parent_dir_path)
-path_to_import_carac   = os.path.join(parent_dir_path,"Characterization")
-path_to_import_energy  = os.path.join(parent_dir_path,"Energy_model")
-path_to_import_LoRa    = os.path.join(os.path.dirname(parent_dir_path),"LoRa")
-path_to_import_PL      = os.path.join(os.path.dirname(parent_dir_path),"Wireless_link")
-path_to_import_PL_model= os.path.join(path_to_import_PL,"Path_loss_model")
-
-
-path_to_save_svg = "D:/Pol/Documents/Research/Paper/ForestMe_Node/Figures/Generated_SVG"
-
 sys.path.append(path_to_import_mainDir)
-sys.path.append(path_to_import_carac)
-sys.path.append(path_to_import_energy)
-sys.path.append(path_to_import_LoRa)
-sys.path.append(path_to_import_PL)
-sys.path.append(path_to_import_PL_model)
+sys.path.append("IoT_node_models/Energy_model")
+sys.path.append("IoT_node_models/Characterization")
+sys.path.append("Tests")
 
-
-import LoRa_library as LoRa
-import logNormal_PL as logPL
-import Path_loss_library as plLib 
-import Optimal_strategy as optLoRa
-
+from Energy_node_Lora   import *
 from MyColors           import *
 from Node_analysis      import *
-from Energy_node_Lora   import *
 from Node_task          import *
 from Energy_node        import *
 from Power_Unit         import *
 from Apollo3            import *
 from BME680             import *
 from RFM95              import *
+
+import logNormal_PL as logPL
+
+path_to_save_svg = "SavedFiles"
+
 
 
 ####################################################
@@ -319,7 +308,7 @@ def deployment_sweep_dnode  (Both_Repl = False,Footprint=None,Node=None,Nyears= 
     
     ax.tick_params(axis='x', labelsize = 12)
     if(filename != None):
-        to_save = os.path.join(path_to_save_svg , filename+".svg")
+        to_save= filename+".svg"
         plt.savefig(to_save, format="svg")
 ####################################################
 def deployment_sweep_rsd    (Both_Repl = False,Footprint=None,Node=None,Nyears= 100,fdata=1000,d = 1000,dtrans = 10,nAA = [], param = [], paramType =None,rsdmin = 5, rsdmax=100, rsd_step=1,   Task_tx = None,PL_model=None,transport_model=None, PTX=[] , I_PTX=[],filename=None,figsize=(7,6)):   
@@ -392,7 +381,7 @@ def deployment_sweep_rsd    (Both_Repl = False,Footprint=None,Node=None,Nyears= 
     
     ax.tick_params(axis='x', labelsize = 12)
     if(filename != None):
-        to_save = os.path.join(path_to_save_svg , filename+".svg")
+        to_save= filename+".svg"
         plt.savefig(to_save, format="svg")
 ####################################################
 def deployment_sweep_fdata  (Both_Repl = False,Footprint=None,Node=None,Nyears= 100,d=1000    ,rsd = 3,dtrans = 10, nAA = [], param = [], paramType =None, fmax=100, f_step=1,                  Task_tx = None,PL_model=None,transport_model=None, PTX=[] , I_PTX=[],filename=None,figsize=(7,6)):   
@@ -477,7 +466,7 @@ def deployment_sweep_fdata  (Both_Repl = False,Footprint=None,Node=None,Nyears= 
     
     ax.tick_params(axis='x', labelsize = 12)
     if(filename != None):
-        to_save = os.path.join(path_to_save_svg , filename+".svg")
+        to_save= filename+".svg"
         plt.savefig(to_save, format="svg")
 ####################################################
 def deployment_sweep_dtrans (Both_Repl = False,Footprint=None,Node=None,Nyears= 100,d=1000    ,rsd = 3,fdata = 24,  nAA = [], param = [], paramType =None, dmin =1,dmax=100, d_step=1,          Task_tx = None,PL_model=None,transport_model=None, PTX=[] , I_PTX=[],filename=None,figsize=(7,6)):   
@@ -549,7 +538,7 @@ def deployment_sweep_dtrans (Both_Repl = False,Footprint=None,Node=None,Nyears= 
     
     ax.tick_params(axis='x', labelsize = 12)
     if(filename != None):
-        to_save = os.path.join(path_to_save_svg , filename+".svg")
+        to_save= filename+".svg"
         plt.savefig(to_save, format="svg")
 ####################################################
 def deployment_sweep_ebatt  (Both_Repl = False,Footprint=None,Node=None,Nyears= 100,fdata=1000,d = 1000,dtrans = 10,rsd = [], param = [], paramType =None,nAAmin = 1, nAAmax=6, nAA_step=1,     Task_tx = None,PL_model=None,transport_model=None, PTX=[] , I_PTX=[],filename=None,figsize=(7,6)):   
@@ -633,7 +622,7 @@ def deployment_sweep_ebatt  (Both_Repl = False,Footprint=None,Node=None,Nyears= 
     ax.set_title("Ebatt : Time period: %d years, Fdata : %s msg/d, d : %u m, dtrans %u m"%(Nyears,fdata,d,dtrans))
 
     if(filename != None):
-        to_save = os.path.join(path_to_save_svg , filename+".svg")
+        to_save= filename+".svg"
         plt.savefig(to_save, format="svg")
 ####################################################
 
@@ -728,7 +717,9 @@ def deployment_ebatt_HP_LP (Tasks_to_swap = [],Footprint=None,Node=None,Nyears= 
     ax.set_title("Ebatt HP-LP: Time period: %d years, Fdata : %s msg/d, d : %u m, dtrans %u m"%(Nyears,fdata,d,dtrans))
 
     if(filename != None):
-        to_save = os.path.join(path_to_save_svg , filename+".svg")
+        print(path_to_save_svg)
+        to_save= filename+".svg"
+        print(to_save)
         plt.savefig(to_save, format="svg")
 ####################################################
 
@@ -826,7 +817,7 @@ def E_F_comp_dtrans (Both_Repl = False,Footprint=None,Cost=None,Node=None,Nyears
     
     axF.tick_params(axis='x', labelsize = 12)
     if(filename != None):
-        to_save = os.path.join(path_to_save_svg , filename+".svg")
+        to_save= filename+".svg"
         plt.savefig(to_save, format="svg")
 ####################################################
 def E_F_comp_fdata (Both_Repl = False,Footprint=None,Cost=None,Node=None,Nyears= 100,d=1000 ,rsd = 3,dtrans = 10, nAA=1 , param = [], paramType =None, fmin =1,fmax=100, f_step=1,              Task_tx = None,PL_model=None,trans_F_model=None,trans_C_model=None, PTX=[] , I_PTX=[],filename=None,figsize=(7,6)):   
@@ -922,7 +913,7 @@ def E_F_comp_fdata (Both_Repl = False,Footprint=None,Cost=None,Node=None,Nyears=
     
     axF.tick_params(axis='x', labelsize = 12)
     if(filename != None):
-        to_save = os.path.join(path_to_save_svg , filename+".svg")
+        to_save= filename+".svg"
         plt.savefig(to_save, format="svg")
 ####################################################
 def E_F_comp_ebatt (Both_Repl = False,Footprint=None,Cost=None,Node=None,Nyears= 100,d=1000 ,rsd = 3,dtrans = 10,fdata=24 , param = [], paramType =None, nAAmin =1,nAAmax=100, nAA_step=1,      Task_tx = None,PL_model=None,trans_F_model=None,trans_C_model=None, PTX=[] , I_PTX=[],filename=None,figsize=(7,6)):   
@@ -1019,7 +1010,7 @@ def E_F_comp_ebatt (Both_Repl = False,Footprint=None,Cost=None,Node=None,Nyears=
     
     axF.tick_params(axis='x', labelsize = 12)
     if(filename != None):
-        to_save = os.path.join(path_to_save_svg , filename+".svg")
+        to_save= filename+".svg"
         plt.savefig(to_save, format="svg")
 ####################################################
 def transport_footprint(km_one_way = 10, type ="Unit", weight_g = 500, footprint_p_tkm = 0.545,unit_factor = 1,footprint_p_km = 0.350,km_fixed=5):
@@ -1126,9 +1117,9 @@ if __name__ == '__main__':
     
 
     def PL_model(d):
-        return (plLib.path_loss_Model(d=d,f = 8.68e8, model = "Callebaut"))[0]
-        #return (plLib.path_loss_Model(d=d,f = 8.68e8, model = "PLE", arg=[3]))[0]
+        return logPL.path_loss_PLd0(d=d, PLd0=94.40,d0=1, n=2.03)
 
+    
     def F_trans(km):
         return transport_footprint(km_one_way = km, type ="Unit", 
                                 weight_g = 500,  footprint_p_tkm = 0.545,
