@@ -1,6 +1,6 @@
 # IoT Node impacts modeling
 
-/!\  The model provided here is still under progress to make it usable for interested persons. Do not hesitate to contact me for any questions : 
+/!\  The model provided here is still under progress to make it usable for interested people. Do not hesitate to contact me for any questions : 
 pol.maistriaux@uclouvain.be
 
 This open-source project provides a modeling of the deployment and maintenace of an IoT node regarding its power consumption, its battery service lifetime, and its environmental footprint. 
