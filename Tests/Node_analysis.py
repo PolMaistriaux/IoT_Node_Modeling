@@ -1,4 +1,9 @@
 #%%
+import math
+import numpy as np
+import inspect
+
+import scipy.interpolate
 
 from matplotlib import pyplot as plt
 import matplotlib.pyplot as plt
@@ -6,39 +11,20 @@ plt.rcParams['figure.facecolor'] = 'white'
 plt.rcParams['mathtext.fontset'] = 'stix'
 plt.rcParams['font.family'] = 'STIXGeneral'
 plt.rcParams['font.size'] = 16
-import math
-import numpy as np
-import inspect
-import scipy.interpolate
+
 import plotly.graph_objects as go
 import plotly.express as px
 import plotly.io as pio
-pio.renderers.default = "svg"
 from plotly.offline import plot
+pio.renderers.default = "svg"
 
 import sys
 import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-file_path = os.path.abspath(__file__)
-parent_dir_path        = os.path.dirname(file_path)
-path_to_import_mainDir = os.path.dirname(parent_dir_path)
-sys.path.append(path_to_import_mainDir)
-sys.path.append("IoT_node_models/Energy_model")
-sys.path.append("IoT_node_models/Characterization")
-sys.path.append("Tests")
-
-import LoRa_library as LoRa
-import logNormal_PL as logPL
-import Optimal_strategy as optLoRa
-
-from MyColors           import *
-from Energy_node_Lora import *
-from Node_task   import*
-from Energy_node import *
-from Power_Unit import *
-from Apollo3 import *
-from BME680  import *
-from RFM95   import *
+from IoT_node_models.Energy_model import *
+from IoT_node_models.Hardware_Modules import *
+from IoT_node_models.Node_examples import *
 
 path_to_save_svg = "SavedFiles"
 
@@ -47,7 +33,7 @@ path_to_save_svg = "SavedFiles"
 def node_power(Node, d= 10 ,PL_model=None, PTX=[] , I_PTX=[], doPlot = False, verbose = False):
 
     PL = PL_model(d)    
-    [opt_SF,opt_PTX,dummy] = optLoRa.find_Opti_SF_PTX(PTX_possible = PTX, PL = PL , I_PTX=I_PTX,verbose=True)
+    [opt_SF,opt_PTX,dummy] = find_Opti_SF_PTX(PTX_possible = PTX, PL = PL , I_PTX=I_PTX,verbose=True)
     if opt_SF == 0:
         print("Out of range for d = %.2f"%(d))
         return [0,0]

@@ -3,7 +3,7 @@ import sys
 import os
 sys.path.append(os.path.abspath("../Energy_model"))
 
-import Energy_node as eNode
+from IoT_node_models.Energy_model import Energy_node as eNode
 
 #MCU : Apollo3
     #6 µA/MHz executing from FLASH or RAM at 3.3 V

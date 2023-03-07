@@ -1,24 +1,17 @@
-#%%
-from matplotlib import pyplot as plt
-import matplotlib.pyplot as plt
-plt.rcParams['figure.facecolor'] = 'white'
-import math
-import numpy as np
-import inspect
-import plotly.graph_objects as go
-import plotly.express as px
-import plotly.io as pio
-pio.renderers.default = "svg"
-from plotly.offline import plot
 
 import sys
 import os
-sys.path.append(os.path.abspath("../Characterization"))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from Energy_node import *
-from Apollo3 import *
-from BME680  import *
-from RFM95   import *
+from IoT_node_models.Energy_model.Energy_node import *
+
+from IoT_node_models.Hardware_Modules.Apollo3 import *
+from IoT_node_models.Hardware_Modules.RFM95   import *
+from IoT_node_models.Hardware_Modules.BME680  import *
+
+
+
+
 
 module_List_1V8 = [apollo_module_1V8,radio_module_1V8,bme_module_1V8]
 

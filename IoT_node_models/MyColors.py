@@ -89,9 +89,9 @@ def plotColors(dict):
     plt.xticks(range(len(dict)), list(dict.keys()),rotation = 90)
 
 if __name__ == '__main__':
-    #plotColors(greenDict)
-    #plotColors(dictColor)
+    plotColors(greenDict)
+    plotColors(dictColor)
     plotColors(redDict)
-    #plotColors(blueDict)
+    plotColors(blueDict)
     plotColors(orangeDict)
     plt.show()

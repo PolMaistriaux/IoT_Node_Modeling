@@ -1,36 +1,16 @@
 #%%
-
-from matplotlib import pyplot as plt
-import matplotlib.pyplot as plt
-plt.rcParams['figure.facecolor'] = 'white'
-import math
-import numpy as np
-import Energy_node as eNode
-import inspect
 import scipy.interpolate
-import plotly.graph_objects as go
-import plotly.express as px
-import plotly.io as pio
-pio.renderers.default = "svg"
-from plotly.offline import plot
+import numpy as np
 
 import sys
 import os
-file_path = os.path.abspath(__file__)
-parent_dir_path        = os.path.dirname(os.path.dirname(file_path))
-path_to_import_carac   = os.path.join(parent_dir_path,"Characterization")
-path_to_import_LoRa   = os.path.join(os.path.dirname(parent_dir_path),"LoRa")
-sys.path.append(path_to_import_carac)
-sys.path.append(path_to_import_LoRa)
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import LoRa_library as LoRa
+from IoT_node_models.Energy_model             import LoRa_library as LoRa
+from IoT_node_models.Energy_model.Energy_node import *
+from IoT_node_models.Energy_model.Power_Unit  import *
 
-from Node_task   import*
-from Energy_node import *
-from Power_Unit import *
-from Apollo3 import *
-from BME680  import *
-from RFM95   import *
+
 ################################
 # LoRa_node contains a - radio module
 #                      - mcu
@@ -44,7 +24,7 @@ from RFM95   import *
 #       * Header
 ################################
 class LoRa_node(Node):
-    def __init__(self,name = None, module_list = [], PMU_composition =[], Battery = None,MCU_module = None, radio_module = None, MCU_active_state =None, MCU_active_duration_tx = MCU_RFM_duration, MCU_active_duration_rx = MCU_RFM_duration,radio_state_TX = None, radio_state_RX =None,Ptx = 2): 
+    def __init__(self,name = None, module_list = [], PMU_composition =[], Battery = None,MCU_module = None, radio_module = None, MCU_active_state =None, MCU_active_duration_tx = 0.3, MCU_active_duration_rx = 0.3,radio_state_TX = None, radio_state_RX =None,Ptx = 2): 
         super().__init__(name = name, module_list = module_list , PMU_composition = PMU_composition, Battery =Battery)
         self.MCU_module       = MCU_module
         self.MCU_active_state = MCU_active_state
@@ -167,31 +147,4 @@ class LoRa_node(Node):
         super().recompute()
 
 
-# %%
 
-if __name__ == '__main__':
-
-    node = Node_profile("Node", module_List_3V3)
-
-
-
-    node = LoRa_node(name = "LoRa node", module_list = module_List_3V3,  
-                    MCU_module   = apollo_module_3V3, MCU_active_state = apollo_state_active_3V3,
-                    radio_module = radio_module_3V3,  radio_state_TX=radio_state_TX_3V3, radio_state_RX= radio_state_RX_3V3, Ptx = 2)
-        
-    node.set_radio_parameters(SF=9 ,Coding=1,Header=True,DE = 1,BW = 125e3, Payload = 50) 
-    node.set_TX_Power_config( P_TX= PTX_PABOOST_3V3, I_TX=I_PABoost_3V3)  
-    node.set_TX_Power(Ptx = 17)
-    node.task_rx.task_rate= 0
-    node.task_tx.task_rate= 24*4
-    task_TPHG_3V3.task_rate = 24*12
-    task_TPH_3V3.task_rate = 24*12
-    node.add_task(task_TPHG_3V3)
-    #node.add_task(task_TPH_3V3)
-    # %%
-    node.recompute()
-    node.print_Tasks()
-    node.print_Modules()
-    node.plot_Power()
-
-# %%

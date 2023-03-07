@@ -3,7 +3,7 @@ import sys
 import os
 sys.path.append(os.path.abspath("../Energy_model"))
 
-import Energy_node as eNode
+from IoT_node_models.Energy_model import Energy_node as eNode
 
 #BME680 no AI: AVERAGE POWER
 BME_sleepCur_3V3 = 0.032796386921874914#0.15e-3 #0.15e-3 #

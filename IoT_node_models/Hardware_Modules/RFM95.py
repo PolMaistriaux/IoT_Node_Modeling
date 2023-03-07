@@ -3,7 +3,7 @@ import sys
 import os
 sys.path.append(os.path.abspath("../Energy_model"))
 
-import Energy_node as eNode
+from IoT_node_models.Energy_model import Energy_node as eNode
 
 
 I_PABoost_3V3 = np.array([ 37.42, 38.89, 40.26, 41.49, 42.88, 44.48, 45.99, 47.83, 50.15, 52.40, 55.73, 59.31, 63.70, 70.12, 76.86, 86.23, 88.82, 96.49,105.58]) #86.23

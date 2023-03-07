@@ -1,23 +1,6 @@
 #%%
 
-from matplotlib import pyplot as plt
-import matplotlib.pyplot as plt
-plt.rcParams['figure.facecolor'] = 'white'
-import math
-import numpy as np
-import Energy_node as eNode
-import inspect
-import scipy.interpolate
-import plotly.graph_objects as go
-import plotly.express as px
-import plotly.io as pio
-pio.renderers.default = "svg"
-from plotly.offline import plot
-
-import sys
-import os
-
-from Energy_node import *
+from IoT_node_models.Energy_model.Energy_node import *
 
 ################################
 class LDO:
@@ -57,7 +40,7 @@ class Battery:
 
 ################################
 
-class Node(eNode.Node_profile):
+class Node(Node_profile):
     def __init__(self,name = "None", module_list = [], PMU_composition =[], Battery = None): 
         super().__init__(name = name, module_list = module_list)
         self.PMU_composition = PMU_composition

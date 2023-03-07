@@ -1,23 +1,9 @@
 #%%
-from matplotlib import pyplot as plt
-import matplotlib.pyplot as plt
-plt.rcParams['figure.facecolor'] = 'white'
-import math
 import numpy as np
-import inspect
-import plotly.graph_objects as go
-import plotly.express as px
-import plotly.io as pio
-pio.renderers.default = "svg"
-from plotly.offline import plot
 
 import sys
 import os
-
-file_path = os.path.abspath(__file__)
-parent_dir_path        = os.path.dirname(file_path)
-path_to_import_mainDir = os.path.dirname(os.path.dirname(parent_dir_path))
-sys.path.append(path_to_import_mainDir)
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from MyColors           import *
 ###################################################################################################
