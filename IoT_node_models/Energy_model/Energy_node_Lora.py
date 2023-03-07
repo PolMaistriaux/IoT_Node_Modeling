@@ -6,7 +6,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from IoT_node_models.Energy_model             import LoRa_library as LoRa
+from IoT_node_models.Wireless_communication   import LoRa_library as LoRa
 from IoT_node_models.Energy_model.Energy_node import *
 from IoT_node_models.Energy_model.Power_Unit  import *
 

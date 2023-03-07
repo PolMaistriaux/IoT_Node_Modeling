@@ -18,8 +18,6 @@ G_RX = 2
 H = G_TX + G_RX - kTB - NF -10
 
 
-
-
 def find_Opti_SF_PTX(PL,SF_possible=SF,PTX_possible=PTX,H=H,I_PTX=[],verbose=False,NF=NF,G_TX=G_TX,G_RX=G_RX,B=B):
     kT = 10*np.log10(k*T) +30
     kTB = kT + 10*np.log10(B)
