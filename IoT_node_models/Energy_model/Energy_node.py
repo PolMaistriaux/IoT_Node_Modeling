@@ -116,7 +116,7 @@ class Node_profile:
         self.sleep_task.energy_day   = 0
 
         #################################################################################
-        # 2 ) For each task, compute te energy consumes to perform it over a single day
+        # 2 ) For each task, compute the energy consumes to perform it over a single day
         #################################################################################
         for task_index, task in enumerate(self.task_list):
             if task != self.sleep_task:
@@ -126,6 +126,7 @@ class Node_profile:
                 #Compute the time spent in standby/default/sleep mode
                 time = time - (task.taskDuration*self.task_rate_list[task_index])
 
+                # Update the time spent in the different state for each module
                 for subtask in task.subtasks:
                     subtask.moduleState.add_active_time_day(subtask.stateDuration,self.task_rate_list[task_index])
 
