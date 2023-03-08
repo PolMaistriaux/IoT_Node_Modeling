@@ -17,37 +17,49 @@ from IoT_node_models.Energy_model.Node_subtask import *
 #   -moduleActiveTime : keeps track of the times spent by each module in active mode (not sleep)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Node_task:
-    def __init__(self,name = "None", node_modules= [], moduleUsed = [], subtasks=[], taskDuration = 0, task_rate =0):
+    def __init__(self,name = "None", node_modules= [], subtasks=[], taskDuration = 0, task_rate =0):
         self.name = name
         self.node_modules  = node_modules
-        self.moduleUsed  = moduleUsed
-        self.moduleActiveTime = [0]*len(moduleUsed)
+        self.moduleActiveTime = [0]*len(node_modules)
         self.subtasks = subtasks
-        self.taskDuration = taskDuration
+        self.taskDuration  = taskDuration
         self.energy_task   = 0
         self.energy_day    = 0
-        self.task_rate = task_rate
+        self.task_rate     = task_rate
 
 
     def compute_energy_task(self):
+        ##############################################
+        # 1 ) Reset the different results variables
+        ##############################################
         energy = 0
-        self.moduleActiveTime = [0]*len(self.moduleUsed)
+        self.energy_task   = 0
+        self.energy_day    = 0
+        self.moduleActiveTime = [0]*len(self.node_modules)
+        ##############################################
+        # 2 ) For each subtask: compute energy
+        ##############################################
         for subtask in self.subtasks:
-            index_module = self.moduleUsed.index(subtask.module)
+            # Find related module
+            index_module = self.node_modules.index(subtask.module)
+            # If no subtask duration is specified, try to use the one of the state
             subtaskDuration = (subtask.stateDuration if subtask.stateDuration != None else subtask.moduleState.duration)
+            if subtaskDuration == None:
+                raise Exception("Error : No duration given for this substask (either specified or from module state)") 
+            if self.taskDuration < subtaskDuration:
+                raise Exception("Error : Duration specified for this task is smaller than active time of single subtask") 
+            # Update module active time
             self.moduleActiveTime[index_module] = self.moduleActiveTime[index_module] + subtaskDuration
+            # Update active time of the state
             subtask.moduleState.add_active_time_day(subtaskDuration,self.task_rate)
-
+            # Update energy of the task 
             energy   = energy + subtask.module.v * subtask.moduleState.i *subtaskDuration
 
-            if self.taskDuration < subtaskDuration:
-                print("Duration specified for this task is smaller than active time of single subtask : duration = %.2f, subtask active time = %.2f"%(subtaskDuration,self.taskDuration))
-        for module in self.node_modules:
-            try:
-                index_module = self.moduleUsed.index(module)
-                energy   = energy + module.i_sleep*module.v*(self.taskDuration - self.moduleActiveTime[index_module])
-            except ValueError:
-                energy = energy+ module.i_sleep*module.v*self.taskDuration
+        ##############################################
+        # 2 ) For each module, add energy in sleep
+        ##############################################
+        for index, module in enumerate(self.node_modules):
+            energy   = energy + module.i_sleep*module.v*(self.taskDuration - self.moduleActiveTime[index])
 
         self.energy_task = energy
         return energy
