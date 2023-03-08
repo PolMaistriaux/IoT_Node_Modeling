@@ -27,6 +27,9 @@ class Node_task:
         self.energy_day    = 0
         self.task_rate     = task_rate
 
+    def reset_task(self):
+        self.energy_task   = 0
+        self.energy_day    = 0
 
     def compute_energy_task(self):
         ##############################################
@@ -49,9 +52,8 @@ class Node_task:
             if self.taskDuration < subtaskDuration:
                 raise Exception("Error : Duration specified for this task is smaller than active time of single subtask") 
             # Update module active time
+            subtask.stateDuration = subtaskDuration
             self.moduleActiveTime[index_module] = self.moduleActiveTime[index_module] + subtaskDuration
-            # Update active time of the state
-            subtask.moduleState.add_active_time_day(subtaskDuration,self.task_rate)
             # Update energy of the task 
             energy   = energy + subtask.module.v * subtask.moduleState.i *subtaskDuration
 

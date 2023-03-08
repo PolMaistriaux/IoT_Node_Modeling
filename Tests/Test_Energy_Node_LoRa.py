@@ -43,11 +43,13 @@ if __name__ == '__main__':
     node.set_radio_parameters(SF=9 ,Coding=1,Header=True,DE = 1,BW = 125e3, Payload = 50) 
     node.set_TX_Power_config( P_TX= PTX_PABOOST_3V3, I_TX=I_PABoost_3V3)  
     node.set_TX_Power(Ptx = 17)
-    node.task_rx.task_rate= 0
-    node.task_tx.task_rate= 24*4
-    task_TPHG_3V3.task_rate = 24*12
+    #node.task_rx.task_rate= 0
+    #node.task_tx.task_rate= 24*4
+    node.change_task_rate(node.task_rx,0)
+    node.change_task_rate(node.task_tx,24*4)
+    #task_TPHG_3V3.task_rate = 24*12
     task_TPH_3V3.task_rate = 24*12
-    node.add_task(task_TPHG_3V3)
+    node.add_task(task_TPHG_3V3,24*12)
     #node.add_task(task_TPH_3V3)
     # %%
     node.recompute()

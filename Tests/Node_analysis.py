@@ -120,7 +120,7 @@ def sweep_fdata(Node, fmax, f_step, Task_tx = None,nAA=[],d = 1000,PL_model=None
         print("No task tx specified")
         return
     capa_1AA = Node.Battery.capacity_mAh
-    f_initial = Task_tx.task_rate
+    f_initial = Node.get_task_rate(Task_tx)
     fdata= np.arange(1,fmax,f_step)
     result = np.zeros((4,len(nAA),len(fdata)))
 
@@ -128,13 +128,15 @@ def sweep_fdata(Node, fmax, f_step, Task_tx = None,nAA=[],d = 1000,PL_model=None
         for index,f in enumerate(fdata):
             result[0,indexAA,index] = f
             Node.Battery.capacity_mAh = capa_1AA*AA
-            Task_tx.task_rate= f
+            node.change_task_rate(Task_tx,f)
+            #Task_tx.task_rate= f
             [av_power,lifetime]=node_power(Node=Node, d= d ,PL_model=PL_model, PTX=PTX , I_PTX=I_PTX, doPlot = False)
             result[1:3,indexAA,index]= [av_power,lifetime]
             result[3,indexAA,index]=Node.Battery.capacity_mAh/(24*365*Node.Battery.i)
 
     Node.Battery.capacity_mAh = capa_1AA
-    Task_tx.task_rate= f_initial
+    #Task_tx.task_rate= f_initial
+    node.change_task_rate(Task_tx,f_initial)
 
     fig,ax = plt.subplots(1,1)
     ax.set_xlabel("Transmission rate [$msg/day$]")
@@ -201,7 +203,7 @@ def sweep_ebatt(Node, nAAmax,d = 1000,PL_model=None, PTX=[] , I_PTX=[], doPlot =
 ####################################################
 def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA=[], Task_tx = None, PL_model=None, PTX=[] , I_PTX=[],filename =None,figsize=(7,6)):  
 
-    f_initial = Task_tx.task_rate
+    f_initial = Node.get_task_rate(Task_tx)
     capa_1AA = Node.Battery.capacity_mAh
 
     d= np.arange(dmin,dmax+d_step,d_step)
@@ -214,6 +216,7 @@ def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA
     i = 0
     for indexf, f in  enumerate(fdata):
         Task_tx.task_rate = f
+        node.change_task_rate(Task_tx,f)
         for index,dist in enumerate(d):
             result_fdata[0,indexf,index] = dist
             result_fdata[1:,indexf,index]=node_power(Node=Node, d= dist ,PL_model=PL_model, PTX=PTX , I_PTX=I_PTX, doPlot = False)
@@ -226,7 +229,8 @@ def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA
                     Ptx_change = Ptx_change + [dist] 
         i=1
 
-    Task_tx.task_rate = f_batt 
+    #Task_tx.task_rate = f_batt 
+    node.change_task_rate(Task_tx,f_batt)
 
     result_nAA  = np.zeros((4,len(nAA),len(d)))
     for indexAA, AA in  enumerate(nAA):
@@ -237,7 +241,8 @@ def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA
             result_nAA[1:3,indexAA,index]= [av_power,lifetime]
             result_nAA[3,indexAA,index]=Node.Battery.capacity_mAh/(24*365*Node.Battery.i)
 
-    Task_tx.task_rate = f_initial 
+    #Task_tx.task_rate = f_initial 
+    node.change_task_rate(Task_tx,f_initial)
     Node.Battery.capacity_mAh = capa_1AA
 
     fig,ax = plt.subplots(2,1,figsize=figsize)
@@ -283,7 +288,7 @@ def sweep_dnode_fdata(Node, dmax, d_step ,fdata = [], Task_tx = None, PL_model=N
 
     d= np.arange(10,dmax,d_step)
     result = np.zeros((3,len(fdata),len(d)))
-    f_initial = Task_tx.task_rate
+    f_initial = Node.get_task_rate(Task_tx)
 
     SF = 0
     Ptx = 0
@@ -291,7 +296,8 @@ def sweep_dnode_fdata(Node, dmax, d_step ,fdata = [], Task_tx = None, PL_model=N
     Ptx_change = []
     i = 0
     for indexf, f in  enumerate(fdata):
-        Task_tx.task_rate = f
+        node.change_task_rate(Task_tx,f)
+        #Task_tx.task_rate = f
         for index,dist in enumerate(d):
             result[0,indexf,index] = dist
             result[1:,indexf,index]=node_power(Node=Node, d= dist ,PL_model=PL_model, PTX=PTX , I_PTX=I_PTX, doPlot = False)
@@ -304,8 +310,9 @@ def sweep_dnode_fdata(Node, dmax, d_step ,fdata = [], Task_tx = None, PL_model=N
                     Ptx_change = Ptx_change + [dist] 
         i=1
 
-    Task_tx.task_rate = f_initial 
-
+    #Task_tx.task_rate = f_initial 
+    node.change_task_rate(Task_tx,f_initial)
+    
     fig,ax = plt.subplots(1,1,figsize=figsize)
     ax.set_xlabel("Distance [$km$]", fontsize = 14)
     
@@ -347,13 +354,14 @@ if __name__ == '__main__':
     node.set_radio_parameters(SF=7 ,Coding=1,Header=True,DE = None,BW = 125e3, Payload = 50) 
     node.set_TX_Power_config( P_TX= PTX_PABOOST_configured, I_TX=I_PABoost_3V3)  
     node.set_TX_Power(Ptx = 17)
-    node.task_rx.task_rate= 0
+    #node.task_rx.task_rate= 0
+    node.change_task_rate(node.task_rx,0)
     #node.change_RX_duration(0.5)
-    node.task_tx.task_rate= 24
-    task_TPHG_3V3.task_rate = 24*12
+    node.change_task_rate(node.task_tx,24)
+    #task_TPHG_3V3.task_rate = 24*12
 
     #task_TPH_3V3.task_rate = 24*12
-    node.add_task(task_TPHG_3V3)
+    node.add_task(task_TPHG_3V3,24*12)
     #node.add_task(task_TPH_3V3)
 
     def PL_model(d):

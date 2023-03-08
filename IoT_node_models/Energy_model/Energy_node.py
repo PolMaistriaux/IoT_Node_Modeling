@@ -32,31 +32,55 @@ class Node_profile:
     def __init__(self,name = "None",module_list = []): # constructor
         self.name = name
         self.module_list = module_list
-        self.task_list   = []
+        self.task_list      = []
+        self.task_rate_list = []
         self.energy_day    = 0
         self.average_power = 0
         self.sleep_task = Node_task("Sleep",module_list,task_rate = 1)
         self.task_list.append(self.sleep_task)
+        self.task_rate_list.append(1)
 
     def reset_node(self):
         for module in self.module_list:
             module.reset_module()
         for task in self.task_list:
-            task.energy_day  = 0
-            task.energy_task =0
+            task.reset_task()
 
-    def set_taskList(self,taskList):
-        self.taskList = taskList
+
+    def set_taskList(self,taskList,taskRates):
+        self.task_list      = taskList
+        self.task_rate_list = taskRates
         self.task_list.append(self.sleep_task)
+        self.task_rate_list.append(1)
         self.reset_node()
 
-    def add_task(self, node_task):
+    def get_task_rate(self,node_task):
+        try:
+            index_task = self.task_list.index(node_task)
+            return self.task_rate_list[index_task]
+        except ValueError:
+            raise Exception("Error: task for which task rate must be updated is not part of the node tasks")
+
+    def change_task_rate(self,node_task,task_rate):
+        try:
+            index_task = self.task_list.index(node_task)
+            self.task_rate_list[index_task] =task_rate
+        except ValueError:
+            raise Exception("Error: task for which task rate must be updated is not part of the node tasks")
+        
+
+
+    def add_task(self, node_task,task_rate):
         if isinstance(node_task,Node_task):
             for x in self.task_list:
                 if x.name == node_task.name:
                     raise Exception("Error : Trying to add a task that is already part of the tasks list") 
             node_task.node_modules = self.module_list
             self.task_list.append(node_task)
+            self.task_rate_list.append(task_rate)
+        else:
+            raise TypeError("Error : a variable type different than Node_task was provided to add_task")
+
 
     def remove_task(self, node_task):
         if isinstance(node_task,Node_task):
@@ -64,12 +88,23 @@ class Node_profile:
                 self.task_list.remove(node_task)
                 self.reset_node()
             except:
-                print("Removing task error : task not registered")
-    
-    def add_module(self, module):
-        if isinstance(module,Node_module):
-            self.module_list.append(module)
-            self.reset_node()
+                raise Exception("Error : Trying to remove a task from the node that it does not perform") 
+        else:
+            raise TypeError("Error : a variable type different than Node_task was provided to add_task")
+
+
+    #def set_moduleList(self,moduleList):
+    #    self.module_list      = moduleList
+    #    self.reset_node()
+#
+#
+    #def add_module(self, module):
+    #    if isinstance(module,Node_module):
+    #        self.module_list.append(module)
+    #        self.reset_node()
+    #    else:
+    #        raise TypeError("Error : a variable type different than Node_module was provided to add_module")
+        
 
     def compute_energy_day(self):
         time = 24*60*60
@@ -83,12 +118,17 @@ class Node_profile:
         #################################################################################
         # 2 ) For each task, compute te energy consumes to perform it over a single day
         #################################################################################
-        for task in self.task_list:
-            task.compute_energy_day()
-            #Accumulate the energy of each tasks to compute the total in active
-            self.energy_day = self.energy_day + task.energy_day
-            #Compute the time spent in standby/default/sleep mode
-            time = time - (task.taskDuration*task.task_rate)
+        for task_index, task in enumerate(self.task_list):
+            if task != self.sleep_task:
+                task.compute_energy_task()
+                #Accumulate the energy of each tasks to compute the total in active
+                self.energy_day = self.energy_day + (task.energy_task * self.task_rate_list[task_index])
+                #Compute the time spent in standby/default/sleep mode
+                time = time - (task.taskDuration*self.task_rate_list[task_index])
+
+                for subtask in task.subtasks:
+                    subtask.moduleState.add_active_time_day(subtask.stateDuration,self.task_rate_list[task_index])
+
         if time <0:
             raise Exception("Error : With task registered, the node is busy for more than a day") 
             return
@@ -111,7 +151,8 @@ class Node_profile:
         #################################################################################
         #Update the information regarding the sleep task
         self.sleep_task.taskDuration     = time
-        self.sleep_task.energy_day   = sleep_energy
+        self.sleep_task.energy_task      = sleep_energy
+        self.sleep_task.energy_day       = sleep_energy
         
         #Compute the final total
         self.energy_day = self.energy_day + sleep_energy
@@ -137,10 +178,10 @@ class Node_profile:
         colors_task = []
         colors = listColor
         i=0
-        for task in self.task_list :
-            task_energy_day.append(task.energy_day)
+        for task_index,task in enumerate(self.task_list) :
+            task_energy_day.append(task.energy_task * self.task_rate_list[task_index])
             task_label.append(task.name)
-            task_duration.append(task.taskDuration*task.task_rate)
+            task_duration.append(task.taskDuration*self.task_rate_list[task_index])
             colors_task.append(colors[i]) 
             i=i+1
 
@@ -246,16 +287,16 @@ class Node_profile:
             print("{:<15}".format(task.name),end="")
         print("")
         print ("{:<12} {:<6} {:<2} ".format( "Times/day","[1/d]"," :"), end="")
-        for task in self.task_list:
-            print("{:<15}".format(task.task_rate),end="")
+        for task_index,task in enumerate(self.task_list):
+            print("{:<15}".format(self.task_rate_list[task_index]),end="")
         print("")
         print ("{:<12} {:<6} {:<2} ".format("Tot. durat.", "[s]"," :"), end="")
-        for task in self.task_list:
-            print("{:<15.4f}".format(task.taskDuration*task.task_rate),end="")
+        for task_index,task in enumerate(self.task_list):
+            print("{:<15.4f}".format(task.taskDuration*self.task_rate_list[task_index]),end="")
         print("")  
         print ("{:<12} {:<6} {:<2} ".format("Tot. en./d", "[mJ]"," :"), end="")
-        for task in self.task_list:
-            print("{:<15.4f}".format(task.energy_day),end="")
+        for task_index,task in enumerate(self.task_list):
+            print("{:<15.4f}".format(task.energy_task *self.task_rate_list[task_index]),end="")
         print("")  
         print ("{:<12} {:<6} {:<2} {:<15.4f} ".format("Node en./d", "[mJ]"," :",self.energy_day))
         print ("{:<12} {:<6} {:<2} {:<15.4f} ".format("Average pow.", "[mW]"," :",self.average_power))

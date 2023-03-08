@@ -43,7 +43,8 @@ class LoRa_node(Node):
                                         node_modules= module_list,                                         #moduleUsed = [  self.MCU_module,     self.radio_module], 
                                         subtasks   = [  self.mcu_subtask_Tx, self.radio_subtask_Tx], 
                                         taskDuration = self.task_tx_duration, 
-                                        task_rate =1)
+                                        #task_rate =1
+                                        )
         
 
         self.RX_duration = 0
@@ -57,8 +58,9 @@ class LoRa_node(Node):
                                         node_modules= module_list,                                         #moduleUsed = [  self.MCU_module,     self.radio_module], 
                                         subtasks   = [  self.mcu_subtask_Rx, self.radio_subtask_Rx ], 
                                         taskDuration = self.task_rx_duration, 
-                                        task_rate =1)
-
+                                         #task_rate =1
+                                        )
+        
         self.SF = 7
         self.Payload = 100
         self.Header = True
@@ -68,8 +70,8 @@ class LoRa_node(Node):
         self.Ptx = Ptx
         self.P_TX_interpolator = None
         self.TX_duration  = LoRa.time_on_air(Payload=self.Payload,Coding=self.Coding,Header=self.Header,DE = self.DE,B = self.BW,SF=self.SF, Bytes=True)
-        self.add_task(self.task_tx)
-        self.add_task(self.task_rx)
+        self.add_task(self.task_tx,1)
+        self.add_task(self.task_rx,1)
 
     def set_TX_Power_config(self, P_TX, I_TX ):
         if np.size(I_TX)==0 or np.size(P_TX)==0 :
