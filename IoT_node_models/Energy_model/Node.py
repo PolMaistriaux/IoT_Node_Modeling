@@ -1,30 +1,6 @@
-#%%
-import numpy as np
-
-from IoT_node_models.Energy_model.Node_module import *
-from IoT_node_models.Energy_model.Node_task   import *
-
-
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from MyColors           import *
-
-###################################################################################################
-# INFORMATION
-###################################################################################################
-#
-# The modeling done here is made over a day but it is purely arbitrary
-#
-###################################################################################################
-
-
-
-
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Given node profile described by:
 #   -The list of module used
-#   -The list of tasks performed
 # Additional variables used:
 #   -energy_day    : energy consumed over the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -32,7 +8,6 @@ class Node_profile:
     def __init__(self,name = "None",module_list = []): # constructor
         self.name = name
         self.module_list = module_list
-        self.task_list   = []
         self.energy_day    = 0
         self.average_power = 0
         self.sleep_task = Node_task("Sleep",module_list,task_rate = 1)
@@ -262,5 +237,3 @@ class Node_profile:
         print("-------------------------------------------------")
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
-  
-

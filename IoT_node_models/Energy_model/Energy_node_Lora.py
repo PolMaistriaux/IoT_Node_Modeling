@@ -89,14 +89,14 @@ class LoRa_node(Node):
             print("Error : No power config. made and no Itx specified")
         if np.size(self.I_TX)==0 or np.size(self.P_TX)==0 :
             self.Ptx = Ptx
-            self.radio_state_TX.i_active = Itx
+            self.radio_state_TX.i = Itx
         else : 
             if(Ptx < np.min(self.P_TX)):
                 Ptx = np.min(self.P_TX)
             elif (Ptx > np.max(self.P_TX)):
                 Ptx = np.max(self.P_TX)
             self.Ptx = Ptx
-            self.radio_state_TX.i_active = self.P_TX_interpolator(Ptx)
+            self.radio_state_TX.i = self.P_TX_interpolator(Ptx)
 
 
     #Typical :SF=7,Coding=1,Header=True,DE = None,BW = 125e3, Payload = 100, Ptx = 0, Rx_duration = 0.250
