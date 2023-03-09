@@ -24,7 +24,7 @@ task_tx_1V8 =  Node_task(  name = "Send Message",
                                          Node_subtask(name='TX'  ,module=radio_module_1V8 ,
                                         moduleState = radio_state_TX_1V8     , stateDuration=TX_duration)], 
                         taskDuration = 500e-3, 
-                        task_rate =1)
+                         )
 
 task_rx_1V8 =  Node_task(  name = "Receive Message", 
                         node_modules= module_List_1V8, 
@@ -35,7 +35,7 @@ task_rx_1V8 =  Node_task(  name = "Receive Message",
                                          Node_subtask(name='RX'  ,module=radio_module_1V8 ,
                                         moduleState = radio_state_RX_1V8     , stateDuration=RX_duration)], 
                         taskDuration = 500e-3, 
-                        task_rate =1)
+                         )
     
 
 task_rxtx_1V8 =  Node_task(  name = "RXTX Message", 
@@ -49,7 +49,7 @@ task_rxtx_1V8 =  Node_task(  name = "RXTX Message",
                                          Node_subtask(name='RX'  ,module=radio_module_1V8 ,
                                         moduleState=radio_state_RX_1V8     , stateDuration=RX_duration)], 
                         taskDuration = 500e-3, 
-                        task_rate =1)
+                         )
 
 task_T_1V8   =  Node_task(   name = "T meas.", 
                         node_modules= module_List_1V8, 
@@ -60,7 +60,7 @@ task_T_1V8   =  Node_task(   name = "T meas.",
                                          Node_subtask(name='TPH' ,module=bme_module_1V8 ,
                                         moduleState=bme_state_T_1V8     , stateDuration=T_duration)], 
                         taskDuration = T_duration+ MCU_BME_duration, 
-                        task_rate =1)
+                         )
 
 task_P_1V8 =  Node_task(   name = "P meas.", 
                         node_modules= module_List_1V8, 
@@ -71,7 +71,7 @@ task_P_1V8 =  Node_task(   name = "P meas.",
                                          Node_subtask(name='TPH' ,module=bme_module_1V8 ,
                                         moduleState=bme_state_P_1V8     , stateDuration=P_duration)], 
                         taskDuration = P_duration+ MCU_BME_duration, 
-                        task_rate =1)
+                         )
 
 task_H_1V8 =  Node_task(   name = "H meas.", 
                         node_modules= module_List_1V8, 
@@ -82,7 +82,7 @@ task_H_1V8 =  Node_task(   name = "H meas.",
                                          Node_subtask(name='TPH' ,module=bme_module_1V8 ,
                                         moduleState=bme_state_H_1V8     , stateDuration=H_duration)], 
                         taskDuration = H_duration+ MCU_BME_duration, 
-                        task_rate =1)
+                         )
 
 task_G_1V8 =  Node_task(   name = "G meas.", 
                         node_modules= module_List_1V8, 
@@ -93,7 +93,7 @@ task_G_1V8 =  Node_task(   name = "G meas.",
                                          Node_subtask(name='TPH' ,module=bme_module_1V8 ,
                                         moduleState=bme_state_G_1V8     , stateDuration=G_duration)], 
                         taskDuration = G_duration+ MCU_BME_duration, 
-                        task_rate =1)
+                         )
 
 
 task_TPH_1V8 =  Node_task(   name = "TPH meas.", 
@@ -105,7 +105,7 @@ task_TPH_1V8 =  Node_task(   name = "TPH meas.",
                                          Node_subtask(name='TPH' ,module=bme_module_1V8 ,
                                         moduleState=bme_state_TPH_1V8     , stateDuration=TPH_duration)], 
                         taskDuration = TPH_duration+ MCU_BME_duration, 
-                        task_rate =1)
+                         )
 
 task_TPHG_1V8 =  Node_task(  name = "TPHG meas.", 
                         node_modules= module_List_1V8, 
@@ -116,7 +116,7 @@ task_TPHG_1V8 =  Node_task(  name = "TPHG meas.",
                                          Node_subtask(name='TPHG' ,module=bme_module_1V8 ,
                                         moduleState=bme_state_TPHG_1V8     , stateDuration=TPHG_duration)], 
                         taskDuration = TPHG_duration+ MCU_BME_duration, 
-                        task_rate =1)
+                         )
 
 
 ########################################################################################
@@ -139,7 +139,7 @@ task_tx_3V3 =  Node_task(  name = "Send Message",
                                          Node_subtask(name='TX'  ,module=radio_module_3V3 ,
                                         moduleState = radio_state_TX_3V3     , stateDuration=TX_duration)], 
                         taskDuration = 500e-3, 
-                        task_rate =1)
+                         )
 
 task_rx_3V3 =  Node_task(  name = "Receive Message", 
                         node_modules= module_List_3V3, 
@@ -150,7 +150,7 @@ task_rx_3V3 =  Node_task(  name = "Receive Message",
                                          Node_subtask(name='RX'  ,module=radio_module_3V3 ,
                                         moduleState = radio_state_RX_3V3     , stateDuration=RX_duration)], 
                         taskDuration = 500e-3, 
-                        task_rate =1)
+                         )
     
 
 task_rxtx_3V3 =  Node_task(  name = "RXTX Message", 
@@ -164,7 +164,7 @@ task_rxtx_3V3 =  Node_task(  name = "RXTX Message",
                                          Node_subtask(name='RX'  ,module=radio_module_3V3 ,
                                         moduleState=radio_state_RX_3V3     , stateDuration=RX_duration)], 
                         taskDuration = 500e-3, 
-                        task_rate =1)
+                         )
 
 task_T_3V3   =  Node_task(   name = "T meas.", 
                         node_modules= module_List_3V3, 
@@ -175,7 +175,7 @@ task_T_3V3   =  Node_task(   name = "T meas.",
                                          Node_subtask(name='TPH' ,module=bme_module_3V3 ,
                                         moduleState=bme_state_T_3V3     , stateDuration=T_duration)], 
                         taskDuration = T_duration+ MCU_BME_duration, 
-                        task_rate =1)
+                         )
 
 task_P_3V3 =  Node_task(   name = "P meas.", 
                         node_modules= module_List_3V3, 
@@ -186,7 +186,7 @@ task_P_3V3 =  Node_task(   name = "P meas.",
                                          Node_subtask(name='TPH' ,module=bme_module_3V3 ,
                                         moduleState=bme_state_P_3V3     , stateDuration=P_duration)], 
                         taskDuration = P_duration+ MCU_BME_duration, 
-                        task_rate =1)
+                         )
 
 task_H_3V3 =  Node_task(   name = "H meas.", 
                         node_modules= module_List_3V3, 
@@ -197,7 +197,7 @@ task_H_3V3 =  Node_task(   name = "H meas.",
                                          Node_subtask(name='TPH' ,module=bme_module_3V3 ,
                                         moduleState=bme_state_H_3V3     , stateDuration=H_duration)], 
                         taskDuration = H_duration+ MCU_BME_duration, 
-                        task_rate =1)
+                         )
 
 task_G_3V3 =  Node_task(   name = "G meas.", 
                         node_modules= module_List_3V3, 
@@ -208,7 +208,7 @@ task_G_3V3 =  Node_task(   name = "G meas.",
                                          Node_subtask(name='TPH' ,module=bme_module_3V3 ,
                                         moduleState=bme_state_G_3V3     , stateDuration=G_duration)], 
                         taskDuration = G_duration+ MCU_BME_duration, 
-                        task_rate =1)
+                         )
 
 
 task_TPH_3V3 =  Node_task(   name = "TPH meas.", 
@@ -220,7 +220,7 @@ task_TPH_3V3 =  Node_task(   name = "TPH meas.",
                                          Node_subtask(name='TPH' ,module=bme_module_3V3 ,
                                         moduleState=bme_state_TPH_3V3     , stateDuration=TPH_duration)], 
                         taskDuration = TPH_duration+ MCU_BME_duration, 
-                        task_rate =1)
+                         )
 
 task_TPHG_3V3 =  Node_task(  name = "TPHG meas.", 
                         node_modules= module_List_3V3, 
@@ -231,7 +231,7 @@ task_TPHG_3V3 =  Node_task(  name = "TPHG meas.",
                                          Node_subtask(name='TPHG' ,module=bme_module_3V3 ,
                                         moduleState=bme_state_TPHG_3V3     , stateDuration=TPHG_duration)], 
                         taskDuration = TPHG_duration+ MCU_BME_duration, 
-                        task_rate =1)
+                         )
 # %%
 
 ########################################################################################
@@ -254,7 +254,7 @@ task_tx_Data =  Node_task(  name = "Send Message",
                                          Node_subtask(name='TX'  ,module=radio_module_Data ,
                                         moduleState = radio_state_TX_Data     , stateDuration=TX_duration)], 
                         taskDuration = 500e-3, 
-                        task_rate =1)
+                         )
 
 task_rx_Data =  Node_task(  name = "Receive Message", 
                         node_modules= module_List_Data, 
@@ -265,7 +265,7 @@ task_rx_Data =  Node_task(  name = "Receive Message",
                                          Node_subtask(name='RX'  ,module=radio_module_Data ,
                                         moduleState = radio_state_RX_Data     , stateDuration=RX_duration)], 
                         taskDuration = 500e-3, 
-                        task_rate =1)
+                         )
     
 
 task_rxtx_Data =  Node_task(  name = "RXTX Message", 
@@ -279,7 +279,7 @@ task_rxtx_Data =  Node_task(  name = "RXTX Message",
                                          Node_subtask(name='RX'  ,module=radio_module_Data ,
                                         moduleState=radio_state_RX_Data     , stateDuration=RX_duration)], 
                         taskDuration = 500e-3, 
-                        task_rate =1)
+                         )
 
 
 
@@ -292,4 +292,4 @@ task_TPHG_Data =  Node_task(  name = "TPHG meas.",
                                          Node_subtask(name='TPHG' ,module=bme_module_Data ,
                                         moduleState=bme_state_TPHG_Data     , stateDuration=TPHG_duration)], 
                         taskDuration = TPHG_duration+ MCU_BME_duration, 
-                        task_rate =1)
+                         )

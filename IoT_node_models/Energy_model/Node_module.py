@@ -26,30 +26,61 @@ class Node_module:
         self.sleep_state   = Module_state("Sleep",v = v, i = i_sleep, duration = None)
         self.state_list.append(self.sleep_state)
         # Result of the model computation
-        self.energy_day      = 0
+        self.energy          = 0
+        self.average_power   = 0
         self.average_current = 0
-        self.t_active_day    = 0
+        self.t_active        = 0
+    
+    def get_energy(self):
+        return self.energy
+    
+    def get_average_power(self):
+        return self.average_power
+    
+    def get_average_current(self):
+        return self.average_current
+    
+    def get_activeTime(self):
+        return self.t_active
+    
+    def get_i_sleep(self):
+        return self.i_sleep
+    
+    def get_v(self):
+        return self.v
+    
+    def get_name(self):
+        return self.name
+    
+
+    def set_i_sleep (self, i_sleep):
+        self.i_sleep = i_sleep
+    
+    def set_v(self, v):
+        self.v = v
+    
+    def set_name(self, name):
+        self.name = name
+    
         
-    def compute_energy_day(self):
-        time = 24*60*60
+    def compute_energy(self, time_window):
+        time = time_window
         ##############################################
         # 1 ) Reset the different sleep variables
         ##############################################
         # Do not reset the t_active of each module state, as they have been update by the tasks
-        self.energy_day               = 0
-        self.sleep_state.duration     = 0
-        self.sleep_state.t_active_day = 0
-        self.sleep_state.energy       = 0
+        self.energy                   = 0
+        self.sleep_state.reset_Module_state()
 
         ########################################################
         # 2 ) For each module state, compute the energy spent
         ########################################################
         for state in self.state_list:
-            state.compute_energy_day()
+            state.compute_energy()
             # Accumulate overall energy consumed by the module
-            self.energy_day = self.energy_day + state.energy_day
+            self.energy = self.energy + state.get_energy()
             # Calculate time spent in standby/default/sleep mode
-            time = time - state.t_active_day
+            time = time - state.get_activeTime()
 
         if time <0:
             raise Exception("Error : With task registered, the node is busy for more than a day")  
@@ -58,31 +89,33 @@ class Node_module:
         ########################################################
         # 3 ) Update the sleep data of the module
         ########################################################  
-        sleep_energy = time*self.v*self.i_sleep
-        self.sleep_state.duration     = time
-        self.sleep_state.t_active_day = time
-        self.sleep_state.energy_day   = sleep_energy
-        self.t_active_day = 24*60*60 - time
-        self.energy_day = self.energy_day + sleep_energy
-        return self.energy_day
+        self.sleep_state.set_duration(   time)
+        self.sleep_state.add_active_time(time)
+        sleep_energy = self.sleep_state.compute_energy()
+
+        self.t_active        = time_window - time
+        self.energy          = self.energy + sleep_energy
+        self.average_power   = self.energy/time_window
+        self.average_current = self.energy /(self.v * time_window)
+
+        return self.energy
 
     
     def add_state(self, module_state):
         if isinstance(module_state,Module_state):
             for x in self.state_list:
-                if x.name==module_state.name:
+                if x.name==module_state.get_name():
                     raise Exception("Error : Trying to add a state that is already part of the module states list") 
                     return
             module_state.v = self.v
             self.state_list.append(module_state)
 
     def reset_module(self):
-        self.energy_day     = 0
+        self.energy          = 0
         self.average_current = 0
-        self.t_active_day    = 0
-        self.sleep_state.duration   = 0
-        self.sleep_state.energy_day = 0
-        self.sleep_state.duration   = 0
+        self.average_power   = 0
+        self.t_active        = 0
+        self.sleep_state.reset_Module_state()
+        self.sleep_state.set_duration(0)
         for module_state in self.state_list:
-            module_state.t_active_day = 0
-            module_state.energy_day = 0
+            module_state.reset_Module_state()

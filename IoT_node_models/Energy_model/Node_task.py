@@ -17,62 +17,80 @@ from IoT_node_models.Energy_model.Node_subtask import *
 #   -moduleActiveTime : keeps track of the times spent by each module in active mode (not sleep)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Node_task:
-    def __init__(self,name = "None", node_modules= [], subtasks=[], taskDuration = 0, task_rate =0):
+    def __init__(self,name = "None", node_modules= [], subtasks=[], taskDuration = 0):
         self.name = name
         self.node_modules  = node_modules
         self.moduleActiveTime = [0]*len(node_modules)
         self.subtasks = subtasks
         self.taskDuration  = taskDuration
         self.energy_task   = 0
-        self.energy_day    = 0
-        self.task_rate     = task_rate
+
+    def get_energy_task(self):
+        return self.energy_task
+    
+    def get_node_modules(self):
+        return self.node_modules
+    
+    def get_name(self):
+        return self.name
+    
+    def get_taskDuration(self):
+        return self.taskDuration
+    
+    def get_moduleActiveTime(self):
+        return self.moduleActiveTime
+    
+
+    def set_node_modules(self, node_modules):
+        self.node_modules = node_modules
+        self.reset_task()
+
+    def set_name(self, name):
+        self.name = name
+
+    def set_taskDuration(self, taskDuration):
+        self.taskDuration = taskDuration
+        self.reset_task()
+
 
     def reset_task(self):
         self.energy_task   = 0
-        self.energy_day    = 0
+        self.moduleActiveTime = [0]*len(self.node_modules)
 
     def compute_energy_task(self):
         ##############################################
         # 1 ) Reset the different results variables
         ##############################################
         energy = 0
-        self.energy_task   = 0
-        self.energy_day    = 0
-        self.moduleActiveTime = [0]*len(self.node_modules)
+        self.reset_task()
         ##############################################
         # 2 ) For each subtask: compute energy
         ##############################################
         for subtask in self.subtasks:
             # Find related module
-            index_module = self.node_modules.index(subtask.module)
+            index_module = self.node_modules.index(subtask.get_module())
             # If no subtask duration is specified, try to use the one of the state
-            subtaskDuration = (subtask.stateDuration if subtask.stateDuration != None else subtask.moduleState.duration)
+            subtaskDuration = subtask.get_stateDuration() 
             if subtaskDuration == None:
                 raise Exception("Error : No duration given for this substask (either specified or from module state)") 
             if self.taskDuration < subtaskDuration:
                 raise Exception("Error : Duration specified for this task is smaller than active time of single subtask") 
-            # Update module active time
-            subtask.stateDuration = subtaskDuration
             self.moduleActiveTime[index_module] = self.moduleActiveTime[index_module] + subtaskDuration
             # Update energy of the task 
-            energy   = energy + subtask.module.v * subtask.moduleState.i *subtaskDuration
+            energy   = energy + (subtask.get_module()).get_v() * (subtask.get_moduleState()).get_i() *subtaskDuration
 
         ##############################################
         # 2 ) For each module, add energy in sleep
         ##############################################
         for index, module in enumerate(self.node_modules):
-            energy   = energy + module.i_sleep*module.v*(self.taskDuration - self.moduleActiveTime[index])
+            energy   = energy + module.get_i_sleep() * module.get_v() * (self.taskDuration - self.moduleActiveTime[index])
 
         self.energy_task = energy
         return energy
 
 
-    def compute_energy_day(self):
-        self.compute_energy_task()
-        self.energy_day = self.energy_task*self.task_rate
-
     def find_subtask(self,name):
         for subtask in self.subtasks:
-            if subtask.name == name:
+            if subtask.get_name() == name:
                 return subtask
         return None

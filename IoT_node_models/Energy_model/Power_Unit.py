@@ -13,13 +13,13 @@ class LDO:
         self.i_out          = 0
         self.module_list = module_list
         for module in self.module_list:
-            if module.v != v_out:
-                print("Module connected to LDO with Vout %.1f as a power supply specified at %.1f"%(self.v_out,module.v))
+            if module.get_v() != v_out:
+                print("Module connected to LDO with Vout %.1f as a power supply specified at %.1f"%(self.v_out,module._get_v()))
 
     def recompute(self):
         self.i_out          = 0
         for module in self.module_list:
-            self.i_out = self.i_out + module.average_current
+            self.i_out = self.i_out + module.get_average_current()
         self.i_in = self.i_out +self.i_q
     
 class Battery:
@@ -68,7 +68,7 @@ class Node(Node_profile):
                     print("Error : PMU module_list is not properly defined")
                     return False
             if found != 1:
-                print("Error : module %s has no PMU"%module.name)
+                print("Error : module %s has no PMU"%module.get_name())
                 return False
         return True
 

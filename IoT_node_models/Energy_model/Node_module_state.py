@@ -19,11 +19,54 @@ class Module_state:
         self.v              = v
         self.duration       = duration
         # Result of the model computation
-        self.energy_day     = 0
-        self.t_active_day   = 0
+        self.energy     = 0
+        self.t_active   = 0
 
-    def compute_energy_day(self):
-        self.energy_day = self.t_active_day * self.i * self.v
+    def reset_Module_state (self):
+        self.energy   = 0
+        self.t_active = 0
+
+    def compute_energy(self):
+        self.energy = self.t_active * self.i * self.v
+        return self.energy
     
-    def add_active_time_day(self,state_duration,occurence):
-        self.t_active_day = self.t_active_day +state_duration *occurence
+    def add_active_time(self,state_duration,occurence=1):
+        self.t_active = self.t_active +state_duration *occurence
+
+
+
+    def get_activeTime(self):
+        return self.t_active
+    
+    def get_energy(self):
+        return self.energy
+    
+    def get_i (self):
+        return self.i
+    
+    def get_v(self):
+        return self.v
+    
+    def get_name(self):
+        return self.name
+    
+    def get_duration(self):
+        return self.duration
+
+
+    def set_activeTime(self, t_active):
+        self.t_active = t_active
+    
+    def set_i (self, i):
+        self.i = i
+    
+    def set_v(self, v):
+        self.v = v
+    
+    def set_name(self, name):
+        self.name = name
+    
+    def set_duration(self, duration):
+        self.duration = duration
+
+    

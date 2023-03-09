@@ -4,7 +4,7 @@
 # Additional variables used:
 #   -energy_day    : energy consumed over the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-class Node_profile:
+class Node_profileazeraze:
     def __init__(self,name = "None",module_list = []): # constructor
         self.name = name
         self.module_list = module_list

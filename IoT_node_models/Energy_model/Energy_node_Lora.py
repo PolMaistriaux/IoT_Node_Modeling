@@ -43,7 +43,6 @@ class LoRa_node(Node):
                                         node_modules= module_list,                                         #moduleUsed = [  self.MCU_module,     self.radio_module], 
                                         subtasks   = [  self.mcu_subtask_Tx, self.radio_subtask_Tx], 
                                         taskDuration = self.task_tx_duration, 
-                                        #task_rate =1
                                         )
         
 
@@ -58,7 +57,6 @@ class LoRa_node(Node):
                                         node_modules= module_list,                                         #moduleUsed = [  self.MCU_module,     self.radio_module], 
                                         subtasks   = [  self.mcu_subtask_Rx, self.radio_subtask_Rx ], 
                                         taskDuration = self.task_rx_duration, 
-                                         #task_rate =1
                                         )
         
         self.SF = 7
