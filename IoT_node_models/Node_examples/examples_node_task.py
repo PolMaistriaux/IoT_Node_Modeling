@@ -3,7 +3,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from IoT_node_models.Energy_model.Energy_node import *
+from IoT_node_models.Energy_model.Node_profile import *
 
 from IoT_node_models.Hardware_Modules.Apollo3 import *
 from IoT_node_models.Hardware_Modules.RFM95   import *

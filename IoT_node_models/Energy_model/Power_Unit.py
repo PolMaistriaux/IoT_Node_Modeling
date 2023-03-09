@@ -1,6 +1,6 @@
 #%%
 
-from IoT_node_models.Energy_model.Energy_node import *
+from IoT_node_models.Energy_model.Node_profile import *
 
 ################################
 class LDO:
