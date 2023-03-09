@@ -272,7 +272,7 @@ class Node_profile:
 
     def print_Modules(self):
         print("-----------------------------------------------------------------")
-        print("                        Module summary (1 Day)                   ")
+        print("                        Module summary                           ")
         print("-----------------------------------------------------------------") 
         print ("{:<12} {:<12} {:<12} {:<12} {:<12}  ".format("Module","State","Active [s]","Energy [mJ]","Av. Cur.[uA]"))
         for module in self.node.get_module_list():
@@ -282,10 +282,19 @@ class Node_profile:
         print("-----------------------------------------------------------------")      
         print ("{:<12} {:<12} {:<12} {:<12.4f}  {:<6.4f}  {:<4} ".format("Total"," "," ",self.energy,self.average_power,"[mW]"))
         print("-----------------------------------------------------------------")
+        if self.node.get_isPowered() :  
+            print ("{:<12} {:<12} {:<12} {:<12} {:<12}  ".format("PMU","Vin[V]","Vout[V]","Energy [mJ]","Av. Cur.[uA]")) 
+            for PMU in self.node.get_PMU_composition():
+                print ("{:<12} {:<12} {:<12.4f} {:<12.4f} {:<12.4f}  ".format(PMU.get_name(),PMU.get_v_in(),PMU.get_v_out(),PMU.get_v_in()*PMU.get_i_in(),1000*PMU.get_i_in()))
+            print("-----------------------------------------------------------------")
+            print ("{:<12} {:<12} {:<12} {:<12} {:<12}  ".format("Battery","Vin[V]","C[mAh]","I [mJ]","Lifetime[years]")) 
+            battery = self.node.get_Battery()
+            print ("{:<12} {:<12} {:<12.4f} {:<12.4f} {:<12.4f}  ".format(battery.get_name(), battery.get_v(), battery.get_capacity_mAh(), battery.get_i(), battery.get_lifetime()))
+            print("-----------------------------------------------------------------")
 
     def print_Tasks(self):
         print("-------------------------------------------------")
-        print("            Tasks summary (1 Day)            ")
+        print("            Tasks summary                        ")
         print("-------------------------------------------------")
         print ("{:<12} {:<6} {:<2} ".format( "Task name"," "," :"), end="")
         for task in self.task_list:

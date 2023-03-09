@@ -345,7 +345,7 @@ def sweep_dnode_fdata(Node, dmax, d_step ,fdata = [], Task_tx = None, PL_model=N
 if __name__ == '__main__':
     
     node_LDO = LDO(name = "Node LDO", v_out = 3.3, i_q = 1e-3, v_in = 3, module_list = module_List_3V3)
-    node_Batt= Battery(name = "Node Battery", v = 3, capacity_mAh = 1800, i = 0, selfdischarge_p_year = 5)
+    node_Batt= Battery(name = "Node Batt.", v = 3.3, capacity_mAh = 1800, i = 0, selfdischarge_p_year = 5)
 
     
     node_lora = LoRa_Node(name= "IoT Node", module_list= module_List_3V3, PMU_composition =[node_LDO], Battery = node_Batt, MCU_module   = apollo_module_3V3, radio_module = radio_module_3V3)
@@ -379,7 +379,7 @@ if __name__ == '__main__':
     #sweep_fdata(Node=node, fmax=24*10, f_step=1, Task_tx = node.task_tx,d = 8000,nAA = [1,3,5],PL_model=PL_model, PTX=PTX_PABOOST_3V3 , I_PTX=I_PABoost_3V3,filename =os.path.join(path_to_save_svg , "Lifetime_fdata_Ebatt"),figsize=figsize) 
     #sweep_ebatt(Node=node, nAAmax = 8,d = 8000,PL_model=PL_model, PTX=PTX_PABOOST_3V3 , I_PTX=I_PABoost_3V3)
     #figsize = (6,6)
-    sweep_dnode_fdata_Ebatt(Node=node,dmin = 200, dmax=1500, d_step=2,f_batt = 24,fdata = [1,24, 24*4],nAA = [1,2], Task_tx = node.task_tx, PL_model=PL_model, PTX=PTX_PABOOST_3V3 , I_PTX=I_PABoost_3V3,filename =os.path.join(path_to_save_svg , "Lifetime_fdata_Ebatt_dnode"),figsize=figsize) 
+    ##sweep_dnode_fdata_Ebatt(Node=node,dmin = 200, dmax=1500, d_step=2,f_batt = 24,fdata = [1,24, 24*4],nAA = [1,2], Task_tx = node.task_tx, PL_model=PL_model, PTX=PTX_PABOOST_3V3 , I_PTX=I_PABoost_3V3,filename =os.path.join(path_to_save_svg , "Lifetime_fdata_Ebatt_dnode"),figsize=figsize) 
     #sweep_dnode_fdata_Ebatt(Node=node,dmin = 3000, dmax=13000, d_step=100,f_batt = 24*7,fdata = [4,86,168],nAA = [1,2], Task_tx = node.task_tx, PL_model=PL_model, PTX=PTX_PABOOST_3V3 , I_PTX=I_PABoost_3V3,filename =os.path.join(path_to_save_svg , "Lifetime_fdata_Ebatt_dnode"),figsize=figsize) 
 
     plt.show()

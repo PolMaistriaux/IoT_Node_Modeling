@@ -49,8 +49,14 @@ class Node:
     def get_Battery(self):
         return self.Battery
     
+    def get_isPowered(self):
+        return self.isPowered
+    
     def get_PMU_composition(self):
         return self.PMU_composition
+    
+    def get_Battery(self):
+        return self.Battery
 
     def set_name(self, name):
         self.name = name

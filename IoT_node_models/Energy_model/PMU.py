@@ -28,4 +28,13 @@ class LDO:
     
     def get_v_in(self):
         return self.v_in
+    
+    def get_i_out(self):
+        return self.i_out
+    
+    def get_v_out(self):
+        return self.v_out
+    
+    def get_name(self):
+        return self.name
 
