@@ -1086,7 +1086,7 @@ if __name__ == '__main__':
     node_LDO = LDO(name = "Node LDO", v_out = 3.3, i_q = 1e-3, v_in = 4.5, module_list = module_List_3V3)
     node_Batt= Battery(name = "Node Battery", v = 4.5, capacity_mAh = 2800, i = 0, selfdischarge_p_year = 5)
 
-    node = LoRa_node(module_list = module_List_3V3,  PMU_composition =[node_LDO], Battery = node_Batt, 
+    node = LoRa_Node(module_list = module_List_3V3,  PMU_composition =[node_LDO], Battery = node_Batt, 
                     MCU_module   = apollo_module_3V3, MCU_active_state = apollo_state_active_3V3,
                     radio_module = radio_module_3V3,  radio_state_TX=radio_state_TX_3V3, radio_state_RX= radio_state_RX_3V3, Ptx = 2)
 

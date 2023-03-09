@@ -7,8 +7,9 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from IoT_node_models.Wireless_communication   import LoRa_library as LoRa
+from IoT_node_models.Energy_model.LoRa_Node import *
 from IoT_node_models.Energy_model.Node_profile import *
-from IoT_node_models.Energy_model.LoRa_Node  import *
+
 
 
 ################################
@@ -23,24 +24,22 @@ from IoT_node_models.Energy_model.LoRa_Node  import *
 #       * P_TX
 #       * Header
 ################################
-class LoRa_nodeazreazer(Node):
-    def __init__(self,name = None, module_list = [], PMU_composition =[], Battery = None,MCU_module = None, radio_module = None, MCU_active_state =None, MCU_active_duration_tx = 0.3, MCU_active_duration_rx = 0.3,radio_state_TX = None, radio_state_RX =None,Ptx = 2): 
-        super().__init__(name = name, module_list = module_list , PMU_composition = PMU_composition, Battery =Battery)
-        self.MCU_module       = MCU_module
+class LoRa_Node_profile(Node_profile):
+    def __init__(self,name = "None",LoRa_node = None, time_window=(24*60*60), MCU_active_state =None, MCU_active_duration_tx = 0.3, MCU_active_duration_rx = 0.3, radio_state_TX = None, radio_state_RX =None,Ptx = 2): 
+        super().__init__(name = name,node = LoRa_node, time_window=time_window)
         self.MCU_active_state = MCU_active_state
-        self.radio_module     = radio_module
         self.radio_state_TX   = radio_state_TX
         self.radio_state_RX   = radio_state_RX
         
         self.TX_duration = 0
         self.MCU_active_duration_tx = MCU_active_duration_tx
         self.task_tx_duration = self.MCU_active_duration_tx + self.TX_duration
-        self.mcu_subtask_Tx   = Node_subtask( name='Proc',module=self.MCU_module,
+        self.mcu_subtask_Tx   = Node_subtask( name='Proc',module=self.node.get_MCU(),
                                                     moduleState=self.MCU_active_state, stateDuration=self.MCU_active_duration_tx)
-        self.radio_subtask_Tx = Node_subtask( name='TX'    ,module=self.radio_module ,
+        self.radio_subtask_Tx = Node_subtask( name='TX'    ,module=self.node.get_radio() ,
                                                     moduleState=self.radio_state_TX ,stateDuration=self.TX_duration)
         self.task_tx = Node_task( name = "TX", 
-                                        node_modules= module_list,                                         #moduleUsed = [  self.MCU_module,     self.radio_module], 
+                                        node_modules= self.node.get_module_list(),                                        
                                         subtasks   = [  self.mcu_subtask_Tx, self.radio_subtask_Tx], 
                                         taskDuration = self.task_tx_duration, 
                                         )
@@ -49,12 +48,12 @@ class LoRa_nodeazreazer(Node):
         self.RX_duration = 0
         self.MCU_active_duration_rx = MCU_active_duration_rx 
         self.task_rx_duration = self.MCU_active_duration_rx + self.RX_duration
-        self.mcu_subtask_Rx   = Node_subtask( name='Proc',module=self.MCU_module,
+        self.mcu_subtask_Rx   = Node_subtask( name='Proc',module=self.node.get_MCU(),
                                                     moduleState=self.MCU_active_state, stateDuration=self.MCU_active_duration_rx)
-        self.radio_subtask_Rx = Node_subtask( name='RX'    ,module=self.radio_module ,
+        self.radio_subtask_Rx = Node_subtask( name='RX'    ,module=self.node.get_radio() ,
                                                      moduleState=self.radio_state_RX ,stateDuration=self.RX_duration)
         self.task_rx = Node_task( name = "RX", 
-                                        node_modules= module_list,                                         #moduleUsed = [  self.MCU_module,     self.radio_module], 
+                                        node_modules= self.node.get_module_list(),                           
                                         subtasks   = [  self.mcu_subtask_Rx, self.radio_subtask_Rx ], 
                                         taskDuration = self.task_rx_duration, 
                                         )
@@ -141,8 +140,8 @@ class LoRa_nodeazreazer(Node):
         self.task_rx_duration               = duration + self.RX_duration
         self.task_rx.taskDuration           = self.task_rx_duration
 
-    def recompute(self):
-        super().recompute()
+    def compute(self):
+        super().compute()
 
 
 

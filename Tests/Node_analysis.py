@@ -43,7 +43,7 @@ def node_power(Node, d= 10 ,PL_model=None, PTX=[] , I_PTX=[], doPlot = False, ve
     Node.SF =opt_SF
     Node.set_radio_parameters(SF=opt_SF)
     Node.set_TX_Power(Ptx = opt_PTX) 
-    Node.recompute()
+    Node.compute()
     if verbose:
         Node.print_Tasks()
         Node.print_Modules()
@@ -54,7 +54,7 @@ def node_power(Node, d= 10 ,PL_model=None, PTX=[] , I_PTX=[], doPlot = False, ve
 
 def sweep_dnode(Node, dmax, d_step ,nAA = [], PL_model=None, PTX=[] , I_PTX=[], doPlot = False,filename =None,figsize=(7,6)):  
 
-    capa_1AA = Node.Battery.capacity_mAh
+    capa_1AA = Node.get_Node().get_Battery().get_capacity_mAh()
 
     d= np.arange(10,dmax,d_step)
     result = np.zeros((3,len(nAA),len(d)))
@@ -66,7 +66,7 @@ def sweep_dnode(Node, dmax, d_step ,nAA = [], PL_model=None, PTX=[] , I_PTX=[], 
     i = 0
     for indexAA, AA in  enumerate(nAA):
         for index,dist in enumerate(d):
-            Node.Battery.capacity_mAh = capa_1AA*AA
+            Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA*AA )
             result[0,indexAA,index] = dist
             result[1:,indexAA,index]=node_power(Node=Node, d= dist ,PL_model=PL_model, PTX=PTX , I_PTX=I_PTX, doPlot = False)
             if i ==0 :
@@ -105,7 +105,7 @@ def sweep_dnode(Node, dmax, d_step ,nAA = [], PL_model=None, PTX=[] , I_PTX=[], 
     ax.set_ylim( ymin= 0, ymax =ax_ylim )
     ax2.set_ylim(ymin= 0, ymax =ax2_ylim)
     ax2.legend()
-    ax.set_title("Dnode and Ebatt : self-discharge rate = %.1f %%"%(Node.Battery.selfdischarge_p_year))
+    ax.set_title("Dnode and Ebatt : self-discharge rate = %.1f %%"%(Node.get_Node().get_Battery().get_selfdischarge_p_year()))
 
     #ax2.vlines(np.array(SF_change) /1000,ymin = ax2_ylim*0.1, ymax = ax2_ylim    , color = "red" ,  linestyle = "dashed")
     #ax2.vlines(np.array(Ptx_change)/1000,ymin = 0           , ymax = ax2_ylim*0.9, color = "black", linestyle = "dashed")
@@ -119,7 +119,7 @@ def sweep_fdata(Node, fmax, f_step, Task_tx = None,nAA=[],d = 1000,PL_model=None
     if Task_tx == None :
         print("No task tx specified")
         return
-    capa_1AA = Node.Battery.capacity_mAh
+    capa_1AA = Node.get_Node().get_Battery().get_capacity_mAh()
     f_initial = Node.get_task_rate(Task_tx)
     fdata= np.arange(1,fmax,f_step)
     result = np.zeros((4,len(nAA),len(fdata)))
@@ -127,12 +127,12 @@ def sweep_fdata(Node, fmax, f_step, Task_tx = None,nAA=[],d = 1000,PL_model=None
     for indexAA, AA in  enumerate(nAA):
         for index,f in enumerate(fdata):
             result[0,indexAA,index] = f
-            Node.Battery.capacity_mAh = capa_1AA*AA
+            Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA*AA )
             node.change_task_rate(Task_tx,f)
             #Task_tx.task_rate= f
             [av_power,lifetime]=node_power(Node=Node, d= d ,PL_model=PL_model, PTX=PTX , I_PTX=I_PTX, doPlot = False)
             result[1:3,indexAA,index]= [av_power,lifetime]
-            result[3,indexAA,index]=Node.Battery.capacity_mAh/(24*365*Node.Battery.i)
+            result[3,indexAA,index]=(Node.get_Node().get_Battery().get_capacity_mAh())/(24*365*(Node.get_Node().get_Battery().get_i()))
 
     Node.Battery.capacity_mAh = capa_1AA
     #Task_tx.task_rate= f_initial
@@ -164,7 +164,7 @@ def sweep_fdata(Node, fmax, f_step, Task_tx = None,nAA=[],d = 1000,PL_model=None
     ax.set_ylim(ymin= 0,  ymax =np.max(result[2,:,:])*1.1 )
     ax2.set_ylim(ymin= 0, ymax =np.max(result[1,:,:])*1100 )
 
-    ax.set_title("Fdata and Ebatt : self-discharge rate = %.1f %% \n dnode = %.1f m"%(Node.Battery.selfdischarge_p_year,d))
+    ax.set_title("Fdata and Ebatt : self-discharge rate = %.1f %% \n dnode = %.1f m"%(Node.get_Node().get_Battery().get_selfdischarge_p_year(),d))
 
     if(filename != None):
         to_save= filename+".svg"
@@ -173,12 +173,12 @@ def sweep_fdata(Node, fmax, f_step, Task_tx = None,nAA=[],d = 1000,PL_model=None
 ####################################################
 def sweep_ebatt(Node, nAAmax,d = 1000,PL_model=None, PTX=[] , I_PTX=[], doPlot = False,filename =None,figsize=(7,6)):   
 
-    capa_1AA = Node.Battery.capacity_mAh
+    capa_1AA = Node.get_Node().get_Battery().get_capacity_mAh()
     nAA= np.arange(1,nAAmax,1)
     result = np.zeros((3,len(nAA)))
     for index,AA in enumerate(nAA):
         result[0,index] = capa_1AA*AA
-        Node.Battery.capacity_mAh = capa_1AA*AA
+        Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA*AA )
         result[1:,index]=node_power(Node=Node, d= d ,PL_model=PL_model, PTX=PTX , I_PTX=I_PTX, doPlot = False,verbose = True)
     
     fig,ax = plt.subplots(1,1)
@@ -204,7 +204,7 @@ def sweep_ebatt(Node, nAAmax,d = 1000,PL_model=None, PTX=[] , I_PTX=[], doPlot =
 def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA=[], Task_tx = None, PL_model=None, PTX=[] , I_PTX=[],filename =None,figsize=(7,6)):  
 
     f_initial = Node.get_task_rate(Task_tx)
-    capa_1AA = Node.Battery.capacity_mAh
+    capa_1AA = Node.get_Node().get_Battery().get_capacity_mAh()
 
     d= np.arange(dmin,dmax+d_step,d_step)
     result_fdata = np.zeros((3,len(fdata),len(d)))
@@ -234,16 +234,16 @@ def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA
 
     result_nAA  = np.zeros((4,len(nAA),len(d)))
     for indexAA, AA in  enumerate(nAA):
-        Node.Battery.capacity_mAh = capa_1AA*AA
+        Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA*AA )
         for index,dist in enumerate(d):
             result_nAA[0,indexAA,index] = dist
             [av_power,lifetime]=node_power(Node=Node, d= dist ,PL_model=PL_model, PTX=PTX , I_PTX=I_PTX, doPlot = False)
             result_nAA[1:3,indexAA,index]= [av_power,lifetime]
-            result_nAA[3,indexAA,index]=Node.Battery.capacity_mAh/(24*365*Node.Battery.i)
+            result_nAA[3,indexAA,index]=(Node.get_Node().get_Battery().get_capacity_mAh())/(24*365*(Node.get_Node().get_Battery().get_i()))
 
     #Task_tx.task_rate = f_initial 
     node.change_task_rate(Task_tx,f_initial)
-    Node.Battery.capacity_mAh = capa_1AA
+    Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA )
 
     fig,ax = plt.subplots(2,1,figsize=figsize)
     ax[1].set_xlabel("Distance [$m$]", fontsize = 14)
@@ -275,7 +275,7 @@ def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA
     ax[1].set_xlim(xmin = dmin, xmax = dmax )
     ax[0].set_xlim(xmin = dmin, xmax = dmax )
     #ax.legend()
-    fig.suptitle("dnode for fdata and ebatt : self-discharge rate = %.1f %%"%(Node.Battery.selfdischarge_p_year))
+    fig.suptitle("dnode for fdata and ebatt : self-discharge rate = %.1f %%"%(Node.get_Node().get_Battery().get_selfdischarge_p_year()))
 
     #ax.vlines(np.array(SF_change) /1000,ymin = ax2_ylim*0.1, ymax = ax2_ylim    , color = "red" ,  linestyle = "dashed")
     #ax.vlines(np.array(Ptx_change)/1000,ymin = 0           , ymax = ax2_ylim*0.9, color = "black", linestyle = "dashed")
@@ -334,7 +334,7 @@ def sweep_dnode_fdata(Node, dmax, d_step ,fdata = [], Task_tx = None, PL_model=N
     #ax_ylim = np.max(result[1,:,:])*1100 
     #ax.set_ylim( ymin= 0, ymax =ax_ylim )
     #ax.legend()
-    ax.set_title("Dnode and fdata : self-discharge rate = %.1f %%"%(Node.Battery.selfdischarge_p_year))
+    ax.set_title("Dnode and fdata : self-discharge rate = %.1f %%"%(Node.get_Node().get_Battery().get_selfdischarge_p_year()))
 
     #ax.vlines(np.array(SF_change) /1000,ymin = ax2_ylim*0.1, ymax = ax2_ylim    , color = "red" ,  linestyle = "dashed")
     #ax.vlines(np.array(Ptx_change)/1000,ymin = 0           , ymax = ax2_ylim*0.9, color = "black", linestyle = "dashed")
@@ -347,10 +347,14 @@ if __name__ == '__main__':
     node_LDO = LDO(name = "Node LDO", v_out = 3.3, i_q = 1e-3, v_in = 3, module_list = module_List_3V3)
     node_Batt= Battery(name = "Node Battery", v = 3, capacity_mAh = 1800, i = 0, selfdischarge_p_year = 5)
 
-    node = LoRa_node(module_list = module_List_3V3,  PMU_composition =[node_LDO], Battery = node_Batt, 
-                    MCU_module   = apollo_module_3V3, MCU_active_state = apollo_state_active_3V3,
-                    radio_module = radio_module_3V3,  radio_state_TX=radio_state_TX_3V3, radio_state_RX= radio_state_RX_3V3, Ptx = 2)
+    
+    node_lora = LoRa_Node(name= "IoT Node", module_list= module_List_3V3, PMU_composition =[node_LDO], Battery = node_Batt, MCU_module   = apollo_module_3V3, radio_module = radio_module_3V3)
+
+    node = LoRa_Node_profile("Node_profile", node_lora, MCU_active_state = apollo_state_active_3V3,
+                    radio_state_TX=radio_state_TX_3V3, radio_state_RX= radio_state_RX_3V3, Ptx = 2)
+                    
         
+
     node.set_radio_parameters(SF=7 ,Coding=1,Header=True,DE = None,BW = 125e3, Payload = 50) 
     node.set_TX_Power_config( P_TX= PTX_PABOOST_configured, I_TX=I_PABoost_3V3)  
     node.set_TX_Power(Ptx = 17)

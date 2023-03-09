@@ -1,8 +1,10 @@
 #%%
 import numpy as np
 
+
 from IoT_node_models.Energy_model.Node_module import *
 from IoT_node_models.Energy_model.Node_task   import *
+from IoT_node_models.Energy_model.Node        import *
 
 
 import sys
@@ -29,31 +31,36 @@ from MyColors           import *
 #   -energy_day    : energy consumed over the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Node_profile:
-    def __init__(self,name = "None",module_list = [], time_window=(24*60*60)): # constructor
+    def __init__(self,name = "None",node = None, time_window=(24*60*60)): # constructor
         self.name = name
-        self.module_list = module_list
+        self.node = node
         self.task_list      = []
         self.task_rate_list = []
         self.time_window   = time_window
         self.energy        = 0
         self.average_power = 0
-        self.sleep_task = Node_task(name = "Sleep",node_modules = module_list)
+        self.lifetime      = 0
+        self.sleep_task = Node_task(name = "Sleep",node_modules = node.get_module_list())
         self.task_list.append(self.sleep_task)
         self.task_rate_list.append(1)
 
-    def reset_node(self):
-        for module in self.module_list:
-            module.reset_module()
+    def reset_node_profile(self):
+        self.energy        = 0
+        self.average_power = 0
+        self.lifetime      = 0
+        self.node.reset_Node()
         for task in self.task_list:
             task.reset_task()
 
+        self.sleep_task.reset_task()
+        self.sleep_task.set_taskDuration(0)
 
     def set_taskList(self,taskList,taskRates):
         self.task_list      = taskList
         self.task_rate_list = taskRates
         self.task_list.append(self.sleep_task)
         self.task_rate_list.append(1)
-        self.reset_node()
+        self.reset_node_profile()
 
     def get_task_rate(self,node_task):
         try:
@@ -76,7 +83,7 @@ class Node_profile:
             for x in self.task_list:
                 if x.name == node_task.get_name():
                     raise Exception("Error : Trying to add a task that is already part of the tasks list") 
-            node_task.node_modules = self.module_list
+            node_task.node_modules = self.node.get_module_list()
             self.task_list.append(node_task)
             self.task_rate_list.append(task_rate)
         else:
@@ -87,7 +94,7 @@ class Node_profile:
         if isinstance(node_task,Node_task):
             try:
                 self.task_list.remove(node_task)
-                self.reset_node()
+                self.reset_node_profile()
             except:
                 raise Exception("Error : Trying to remove a task from the node that it does not perform") 
         else:
@@ -96,13 +103,13 @@ class Node_profile:
 
     #def set_moduleList(self,moduleList):
     #    self.module_list      = moduleList
-    #    self.reset_node()
+    #    self.reset_node_profile()
 #
 #
     #def add_module(self, module):
     #    if isinstance(module,Node_module):
     #        self.module_list.append(module)
-    #        self.reset_node()
+    #        self.reset_node_profile()
     #    else:
     #        raise TypeError("Error : a variable type different than Node_module was provided to add_module")
         
@@ -110,17 +117,13 @@ class Node_profile:
         self.time_window = 24*60*60
         self.compute_energy(self.time_window)
 
-    def compute_energy(self):
+
+    def compute(self):
         time = self.time_window
         ####################################
         # 1 ) Reset the different variables
         ####################################
-        self.energy = 0
-        self.sleep_task.reset_task()
-        self.sleep_task.set_taskDuration(0)
-
-        for module in self.module_list:
-            module.reset_module()
+        self.reset_node_profile()
         #################################################################################
         # 2 ) For each task, compute the energy consumes to perform it over a single day
         #################################################################################
@@ -145,9 +148,7 @@ class Node_profile:
         #################################################################################
         # 3 ) For each module, compute the energy it consumes over a single day
         #################################################################################
-        for module in self.module_list:
-            #Compute the module energy for a single day, considering sleep mode.
-            module.compute_energy(self.time_window)
+        self.node.compute(self.time_window)
 
         #################################################################################
         # 4 ) Update the information regarding the sleep task and compute the total
@@ -158,17 +159,19 @@ class Node_profile:
         
         #Compute the final total
         self.energy = self.energy + sleep_energy
+        if (100*(self.node.get_energy() - self.energy)/self.energy) > 0.00001 :
+            print(self.node.get_energy())
+            print(self.energy)
+            raise Exception("Result of energy calculation on Node modules and Tasks differ")
+        
+        self.average_power= self.energy/(self.time_window)
+        self.lifetime = self.node.get_lifetime()
         return self.energy
 
 
-    def compute_average_power(self):
-        self.average_power= self.energy/(self.time_window)
-        return self.average_power
 
-    def recompute(self):
-        self.reset_node()
-        self.compute_energy()
-        self.compute_average_power()
+    def get_Node(self):
+            return self.node
 
 
     def plot_Power(self,save=False,filename="test"):
@@ -208,7 +211,7 @@ class Node_profile:
         i=0
         j=0
         indexModuleSleep = []
-        for module in self.module_list :
+        for module in self.node.get_module_list() :
             module_label.append(module.get_name())
             indexModuleSleep.append(j)
             for state in module.state_list:
@@ -247,7 +250,7 @@ class Node_profile:
         i=0
         j=0
         indexModuleSleep = []
-        for module in self.module_list :
+        for module in self.node.get_module_list() :
             module_label.append(module.get_name())
             module_energy.append(module.get_energy())
             i=i+1 
@@ -272,7 +275,7 @@ class Node_profile:
         print("                        Module summary (1 Day)                   ")
         print("-----------------------------------------------------------------") 
         print ("{:<12} {:<12} {:<12} {:<12} {:<12}  ".format("Module","State","Active [s]","Energy [mJ]","Av. Cur.[uA]"))
-        for module in self.module_list:
+        for module in self.node.get_module_list():
             print ("{:<12} {:<12} {:<12.4f} {:<12.4f} {:<12.4f}  ".format(module.get_name()," ",module.get_activeTime(),module.get_energy(),module.get_average_current()*1000))
             for state in module.state_list:
                 print ("{:<12} {:<12} {:<12.4f} {:<12.4f} ".format("     -",state.get_name(),state.get_activeTime(),state.get_energy()))
@@ -303,6 +306,17 @@ class Node_profile:
         print ("{:<12} {:<6} {:<2} {:<15.4f} ".format("Node en./d", "[mJ]"," :",self.energy))
         print ("{:<12} {:<6} {:<2} {:<15.4f} ".format("Average pow.", "[mW]"," :",self.average_power))
         print("-------------------------------------------------")
+
+
+
+
+
+
+
+
+
+
+        
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
   
