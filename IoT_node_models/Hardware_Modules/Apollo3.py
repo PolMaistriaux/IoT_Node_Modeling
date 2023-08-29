@@ -1,9 +1,9 @@
 import numpy as np
 import sys
 import os
-sys.path.append(os.path.abspath("../Energy_model"))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Energy_model'))
 
-from IoT_node_models.Energy_model.Node_profile import *
+from Energy_model.Node_profile import *
 
 #MCU : Apollo3
     #6 µA/MHz executing from FLASH or RAM at 3.3 V

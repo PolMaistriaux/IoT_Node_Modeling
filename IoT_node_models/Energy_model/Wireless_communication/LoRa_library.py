@@ -36,7 +36,7 @@ def data_rate(B = 125e3,SF=12, Bytes=True):
 
 #%%%
 if __name__ == '__main__':
-    Rb = time_on_air(Payload=76,Coding=1,Header=True,DE = 0,B = 125e3,SF=7, Bytes=True)
+    Rb = time_on_air(Payload=11,Coding=4,Header=True,DE = 0,B = 125e3,SF=8, Bytes=True)
     print(Rb)
     print(data_rate(B = 125e3,SF=7, Bytes=False))
         

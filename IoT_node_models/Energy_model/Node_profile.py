@@ -2,9 +2,9 @@
 import numpy as np
 
 
-from IoT_node_models.Energy_model.Node_module import *
-from IoT_node_models.Energy_model.Node_task   import *
-from IoT_node_models.Energy_model.Node        import *
+from Energy_model.Node_module import *
+from Energy_model.Node_task   import *
+from Energy_model.Node        import *
 
 
 import sys
@@ -67,7 +67,7 @@ class Node_profile:
             index_task = self.task_list.index(node_task)
             return self.task_rate_list[index_task]
         except ValueError:
-            raise Exception("Error: task for which task rate must be updated is not part of the node tasks")
+            raise Exception("Error: task for which task rate must be found  is not part of the node tasks")
 
     def change_task_rate(self,node_task,task_rate):
         try:
@@ -115,7 +115,7 @@ class Node_profile:
         
     def compute_energy_day(self):
         self.time_window = 24*60*60
-        self.compute_energy(self.time_window)
+        self.compute()
 
 
     def compute(self):

@@ -1,13 +1,12 @@
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Energy_model'))
 
-from IoT_node_models.Energy_model.Node_profile import *
-
-from IoT_node_models.Hardware_Modules.Apollo3 import *
-from IoT_node_models.Hardware_Modules.RFM95   import *
-from IoT_node_models.Hardware_Modules.BME680  import *
+from Energy_model.Node_profile import *
+from Hardware_Modules.Apollo3  import *
+from Hardware_Modules.RFM95    import *
+from Hardware_Modules.BME680   import *
 
 
 

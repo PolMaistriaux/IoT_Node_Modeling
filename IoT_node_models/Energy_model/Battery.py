@@ -1,6 +1,6 @@
 #%%
 
-from IoT_node_models.Energy_model.Node_module import *
+from Energy_model.Node_module import *
 
 ################################
 

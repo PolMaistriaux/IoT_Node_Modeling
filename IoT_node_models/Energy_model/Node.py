@@ -3,9 +3,9 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from IoT_node_models.Energy_model.Node_module_state import *
-from IoT_node_models.Energy_model.Battery import *
-from IoT_node_models.Energy_model.PMU import *
+from Energy_model.Node_module_state import *
+from Energy_model.Battery           import *
+from Energy_model.PMU               import *
 
 
 

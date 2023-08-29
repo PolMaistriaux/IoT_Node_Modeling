@@ -4,12 +4,15 @@ import numpy as np
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from IoT_node_models.Wireless_communication   import LoRa_library as LoRa
-from IoT_node_models.Energy_model.LoRa_Node import *
-from IoT_node_models.Energy_model.Node_profile import *
-
+try :
+    from Energy_model.Wireless_communication    import LoRa_library as LoRa
+    from Energy_model.LoRa_Node    import *
+    from Energy_model.Node_profile import *
+except : 
+    from Wireless_communication    import LoRa_library as LoRa
+    from LoRa_Node    import *
+    from Node_profile import *
 
 
 ################################
@@ -145,3 +148,31 @@ class LoRa_Node_profile(Node_profile):
 
 
 
+#################################################################################################################################
+
+    ###########################################
+    #           TESTING
+    ###########################################
+
+if __name__ == '__main__':
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Hardware_Modules'))
+    from Hardware_Modules.Node_example import *
+    node = LoRa_Node(name= "IoT Node", module_list= module_List_3V3, MCU_module   = apollo_module_3V3, radio_module = radio_module_3V3)
+
+    node_prof= LoRa_Node_profile("Node_profile", node, MCU_active_state = apollo_state_active_3V3,
+                    radio_state_TX=radio_state_TX_3V3, radio_state_RX= radio_state_RX_3V3, Ptx = 2)
+                    
+        
+    node_prof.set_radio_parameters(SF=9 ,Coding=1,Header=True,DE = 1,BW = 125e3, Payload = 50) 
+    node_prof.set_TX_Power_config( P_TX= PTX_PABOOST_3V3, I_TX=I_PABoost_3V3)  
+    node_prof.set_TX_Power(Ptx = 17)
+    node_prof.change_RX_duration(250e-3)
+
+    node_prof.change_task_rate(node_prof.task_rx,10)
+    node_prof.change_task_rate(node_prof.task_tx,24*4)
+    node_prof.add_task(task_TPHG_3V3,24*12)
+    # %%
+    node_prof.compute()
+    node_prof.print_Tasks()
+    node_prof.print_Modules()
+    node_prof.plot_Power()

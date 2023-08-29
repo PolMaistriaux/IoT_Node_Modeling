@@ -1,9 +1,9 @@
 import numpy as np
 import sys
 import os
-sys.path.append(os.path.abspath("../Energy_model"))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Energy_model'))
 
-from IoT_node_models.Energy_model.Node_profile import *
+from Energy_model.Node_profile import *
 
 #BME680 no AI: AVERAGE POWER
 BME_sleepCur_3V3 = 0.032796386921874914#0.15e-3 #0.15e-3 #
