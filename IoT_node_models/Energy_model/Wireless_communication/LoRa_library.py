@@ -33,6 +33,10 @@ def data_rate(B = 125e3,SF=12, Bytes=True):
         return Rb/8
     else:
         return Rb  
+    
+def preamble_ToA(B = 125e3,SF=7):
+    N_preamble    = 4.25 + 8
+    return (N_preamble) * 2**(SF) *(1/B)  
 
 #%%%
 if __name__ == '__main__':

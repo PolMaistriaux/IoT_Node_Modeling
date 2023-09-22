@@ -7,10 +7,12 @@ import os
 
 try :
     from Energy_model.Wireless_communication    import LoRa_library as LoRa
+    from Energy_model.Wireless_communication    import Optimal_strategy as optStrat
     from Energy_model.LoRa_Node    import *
     from Energy_model.Node_profile import *
 except : 
-    from Wireless_communication    import LoRa_library as LoRa
+    from Wireless_communication    import LoRa_library     as LoRa
+    from Wireless_communication    import Optimal_strategy as optStrat
     from LoRa_Node    import *
     from Node_profile import *
 
@@ -69,9 +71,15 @@ class LoRa_Node_profile(Node_profile):
         self.BW = 125e3
         self.Ptx = Ptx
         self.P_TX_interpolator = None
+        self.P_TX = []
+        self.I_TX = []
         self.TX_duration  = LoRa.time_on_air(Payload=self.Payload,Coding=self.Coding,Header=self.Header,DE = self.DE,B = self.BW,SF=self.SF, Bytes=True)
         self.add_task(self.task_tx,1)
         self.add_task(self.task_rx,1)
+
+        #For settings of Link budget
+        self.PL_model = None
+        self.distance = 1
 
     def set_TX_Power_config(self, P_TX, I_TX ):
         if np.size(I_TX)==0 or np.size(P_TX)==0 :
@@ -145,6 +153,33 @@ class LoRa_Node_profile(Node_profile):
 
     def compute(self):
         super().compute()
+
+
+    def set_distance(self,d, recompute=False):
+        self.distance = d
+        self.set_optimal_SF_PTX_at_PL()
+        if recompute:
+            self.compute()
+
+    def set_Path_loss_model(self,PL_model, recompute=False):
+        self.PL_model = PL_model
+        self.set_optimal_SF_PTX_at_PL()
+        if recompute:
+            self.compute()
+
+    def set_optimal_SF_PTX_at_PL(self,verbose = False):
+        if self.PL_model is None:
+            raise Exception("Error : No Path loss model provided") 
+        PL = self.PL_model(self.distance)    
+        [opt_SF,opt_PTX,dummy] = optStrat.find_Opti_SF_PTX(PTX_possible = self.P_TX, PL = PL , I_PTX=self.I_TX,verbose=verbose)
+        if opt_SF == 0:
+            raise Exception("Error : Out of range for d = %.2f"%(self.distance)) 
+            return [0,0]
+        self.SF =opt_SF
+        self.set_radio_parameters(SF=opt_SF)
+        self.set_TX_Power(Ptx = opt_PTX) 
+        if verbose:
+            print("Radio parameter : SF = %d and PTx = %.1f dBm"%(opt_SF,opt_PTX))
 
 
 

@@ -34,28 +34,7 @@ path_to_save_svg = "SavedFiles"
 
 ####################################################
 
-def node_power(Node, d= 10 ,PL_model=None, PTX=[] , I_PTX=[], doPlot = False, verbose = False):
-
-    PL = PL_model(d)    
-    [opt_SF,opt_PTX,dummy] = find_Opti_SF_PTX(PTX_possible = PTX, PL = PL , I_PTX=I_PTX,verbose=verbose)
-    if opt_SF == 0:
-        raise Exception("Error : Out of range for d = %.2f"%(d)) 
-        return [0,0]
-    Node.SF =opt_SF
-    Node.set_radio_parameters(SF=opt_SF)
-    Node.set_TX_Power(Ptx = opt_PTX) 
-    Node.compute()
-    if verbose:
-        Node.print_Tasks()
-        Node.print_Modules()
-        print("Radio parameter : SF = %d and PTx = %.1f dBm"%(opt_SF,opt_PTX))
-    if doPlot:
-        Node.plot_Power()
-    return [Node.average_power,Node.lifetime]
-
-
-
-def sweep_dnode(Node, dmax, d_step ,nAA = [], PL_model=None, PTX=[] , I_PTX=[], doPlot = False,filename =None,figsize=(7,6)):  
+def sweep_dnode(Node, dmax, d_step ,nAA = [], PL_model=None, doPlot = False,filename =None,figsize=(7,6)):  
 
     capa_1AA = Node.get_Node().get_Battery().get_capacity_mAh()
 
@@ -71,7 +50,8 @@ def sweep_dnode(Node, dmax, d_step ,nAA = [], PL_model=None, PTX=[] , I_PTX=[], 
         for index,dist in enumerate(d):
             Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA*AA )
             result[0,indexAA,index] = dist
-            result[1:,indexAA,index]=node_power(Node=Node, d= dist ,PL_model=PL_model, PTX=PTX , I_PTX=I_PTX, doPlot = False)
+            Node.set_distance(dist,recompute=True)
+            result[1:,indexAA,index]= [Node.average_power,Node.lifetime] 
             if i ==0 :
                 if Node.SF != SF :
                     SF = Node.SF
@@ -117,7 +97,7 @@ def sweep_dnode(Node, dmax, d_step ,nAA = [], PL_model=None, PTX=[] , I_PTX=[], 
         plt.savefig(to_save, format="svg")  
     
 ####################################################
-def sweep_fdata(Node, fmax, f_step, Task_tx = None,nAA=[],d = 1000,PL_model=None, PTX=[] , I_PTX=[], doPlot = False,filename =None,figsize=(7,6)):   
+def sweep_fdata(Node, fmax, f_step, Task_tx = None,nAA=[],d = 1000,PL_model=None , doPlot = False,filename =None,figsize=(7,6)):   
 
     if Task_tx == None :
         print("No task tx specified")
@@ -133,8 +113,8 @@ def sweep_fdata(Node, fmax, f_step, Task_tx = None,nAA=[],d = 1000,PL_model=None
             Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA*AA )
             Node.change_task_rate(Task_tx,f)
             #Task_tx.task_rate= f
-            [av_power,lifetime]=node_power(Node=Node, d= d ,PL_model=PL_model, PTX=PTX , I_PTX=I_PTX, doPlot = False)
-            result[1:3,indexAA,index]= [av_power,lifetime]
+            Node.compute()
+            result[1:3,indexAA,index]= [Node.average_power,Node.lifetime] 
             result[3,indexAA,index]=(Node.get_Node().get_Battery().get_capacity_mAh())/(24*365*(Node.get_Node().get_Battery().get_i()))
 
     Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA )
@@ -174,7 +154,7 @@ def sweep_fdata(Node, fmax, f_step, Task_tx = None,nAA=[],d = 1000,PL_model=None
         plt.savefig(to_save, format="svg")  
 
 ####################################################
-def sweep_ebatt(Node, nAAmax,d = 1000,PL_model=None, PTX=[] , I_PTX=[], doPlot = False,filename =None,figsize=(7,6)):   
+def sweep_ebatt(Node, nAAmax,d = 1000,PL_model=None , doPlot = False,filename =None,figsize=(7,6)):   
 
     capa_1AA = Node.get_Node().get_Battery().get_capacity_mAh()
     nAA= np.arange(1,nAAmax,1)
@@ -182,8 +162,10 @@ def sweep_ebatt(Node, nAAmax,d = 1000,PL_model=None, PTX=[] , I_PTX=[], doPlot =
     for index,AA in enumerate(nAA):
         result[0,index] = capa_1AA*AA
         Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA*AA )
-        result[1:,index]=node_power(Node=Node, d= d ,PL_model=PL_model, PTX=PTX , I_PTX=I_PTX, doPlot = False,verbose = True)
+        Node.compute()
+        result[1:,index]=[Node.average_power,Node.lifetime] 
     
+    Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA )
     fig,ax = plt.subplots(1,1)
     ax.set_xlabel("Battery capacity [mAh]", fontsize = 14)
     
@@ -204,7 +186,7 @@ def sweep_ebatt(Node, nAAmax,d = 1000,PL_model=None, PTX=[] , I_PTX=[], doPlot =
         plt.savefig(to_save, format="svg")  
 
 ####################################################
-def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA=[], Task_tx = None, PL_model=None, PTX=[] , I_PTX=[],filename =None,figsize=(7,6)):  
+def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA=[], Task_tx = None, PL_model=None ,filename =None,figsize=(7,6)):  
 
     f_initial = Node.get_task_rate(Task_tx)
     capa_1AA = Node.get_Node().get_Battery().get_capacity_mAh()
@@ -222,7 +204,8 @@ def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA
         Node.change_task_rate(Task_tx,f)
         for index,dist in enumerate(d):
             result_fdata[0,indexf,index] = dist
-            result_fdata[1:,indexf,index]=node_power(Node=Node, d= dist ,PL_model=PL_model, PTX=PTX , I_PTX=I_PTX, doPlot = False)
+            Node.set_distance(dist,recompute=True)
+            result_fdata[1:,indexf,index]=[Node.average_power,Node.lifetime] 
             if i ==0 :
                 if Node.SF != SF :
                     SF = Node.SF
@@ -240,8 +223,8 @@ def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA
         Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA*AA )
         for index,dist in enumerate(d):
             result_nAA[0,indexAA,index] = dist
-            [av_power,lifetime]=node_power(Node=Node, d= dist ,PL_model=PL_model, PTX=PTX , I_PTX=I_PTX, doPlot = False)
-            result_nAA[1:3,indexAA,index]= [av_power,lifetime]
+            Node.set_distance(dist,recompute=True)
+            result_nAA[1:3,indexAA,index]= [Node.average_power,Node.lifetime] 
             result_nAA[3,indexAA,index]=(Node.get_Node().get_Battery().get_capacity_mAh())/(24*365*(Node.get_Node().get_Battery().get_i()))
 
     #Task_tx.task_rate = f_initial 
@@ -287,7 +270,7 @@ def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA
         plt.savefig(to_save, format="svg")  
 
 ####################################################
-def sweep_dnode_fdata(Node, dmax, d_step ,fdata = [], Task_tx = None, PL_model=None, PTX=[] , I_PTX=[],filename =None,figsize=(7,6)):  
+def sweep_dnode_fdata(Node, dmax, d_step ,fdata = [], Task_tx = None, PL_model=None ,filename =None,figsize=(7,6)):  
 
     d= np.arange(10,dmax,d_step)
     result = np.zeros((3,len(fdata),len(d)))
@@ -303,7 +286,8 @@ def sweep_dnode_fdata(Node, dmax, d_step ,fdata = [], Task_tx = None, PL_model=N
         #Task_tx.task_rate = f
         for index,dist in enumerate(d):
             result[0,indexf,index] = dist
-            result[1:,indexf,index]=node_power(Node=Node, d= dist ,PL_model=PL_model, PTX=PTX , I_PTX=I_PTX, doPlot = False)
+            Node.set_distance(dist,recompute=True)
+            result[1:,indexf,index]=[Node.average_power,Node.lifetime] 
             if i ==0 :
                 if Node.SF != SF :
                     SF = Node.SF
