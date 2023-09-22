@@ -6,6 +6,7 @@ from .Node_task            import  *
 from .Node_profile         import  *
 from .Battery              import  *
 from .PMU                  import  *
+from .Transceiver_task     import  *
 from .LoRa_Node            import  * 
 from .Node_profile         import  *
 from .LoRa_Node_profile    import  *

@@ -26,13 +26,13 @@ class Module_state:
         self.energy   = 0
         self.t_active = 0
 
-    def compute_energy(self):
-        self.energy = self.t_active * self.i * self.v
-        return self.energy
+    def compute_energy(self,duration, paramVI=[None,None]):
+        return duration*(self.i if (paramVI[1] is None) else paramVI[1]) * (self.v if (paramVI[0] is None) else paramVI[0])
     
-    def add_active_time(self,state_duration,occurence=1):
-        self.t_active = self.t_active +state_duration *occurence
-
+    def add_active_time(self,state_duration,occurence=1, paramVI=[None,None]):
+        this_duration = state_duration *occurence
+        self.t_active = self.t_active + this_duration
+        self.energy   = self.energy   + self.compute_energy(duration=this_duration,paramVI=paramVI)
 
 
     def get_activeTime(self):

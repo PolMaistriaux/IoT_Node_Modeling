@@ -7,8 +7,9 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from Energy_model.Wireless_communication   import LoRa_library as LoRa
-from Energy_model.Node import *
-
+from Energy_model.Wireless_communication   import Optimal_strategy as optStrat
+from Energy_model.Node      import *
+from Energy_model.Node_task import *
 
 
 ################################
@@ -35,6 +36,4 @@ class LoRa_Node(Node):
     def get_radio(self) :
         return self.radio_module
 
-
-
-
+##############################################################################################

@@ -8,13 +8,15 @@ import os
 try :
     from Energy_model.Wireless_communication    import LoRa_library as LoRa
     from Energy_model.Wireless_communication    import Optimal_strategy as optStrat
-    from Energy_model.LoRa_Node    import *
-    from Energy_model.Node_profile import *
+    from Energy_model.LoRa_Node        import *
+    from Energy_model.Node_profile     import *
+    from Energy_model.Transceiver_task import *
 except : 
     from Wireless_communication    import LoRa_library     as LoRa
     from Wireless_communication    import Optimal_strategy as optStrat
-    from LoRa_Node    import *
-    from Node_profile import *
+    from LoRa_Node        import *
+    from Node_profile     import *
+    from Transceiver_task import *
 
 
 ################################
@@ -30,156 +32,25 @@ except :
 #       * Header
 ################################
 class LoRa_Node_profile(Node_profile):
-    def __init__(self,name = "None",LoRa_node = None, time_window=(24*60*60), MCU_active_state =None, MCU_active_duration_tx = 0.3, MCU_active_duration_rx = 0.3, radio_state_TX = None, radio_state_RX =None,Ptx = 2): 
+    def __init__(self,name = "None",LoRa_node = None, time_window=(24*60*60), MCU_active_state =None, MCU_active_duration_tx = 0.3, MCU_active_duration_rx = 0.3,RX_state=None,TX_state=None, I_TX=None, P_TX=None): 
         super().__init__(name = name,node = LoRa_node, time_window=time_window)
-        self.MCU_active_state = MCU_active_state
-        self.radio_state_TX   = radio_state_TX
-        self.radio_state_RX   = radio_state_RX
-        
-        self.TX_duration = 0
+        self.radio_RX_state         = RX_state
+        self.radio_TX_state         = TX_state
+        self.MCU_active_state       = MCU_active_state
         self.MCU_active_duration_tx = MCU_active_duration_tx
-        self.task_tx_duration = self.MCU_active_duration_tx + self.TX_duration
-        self.mcu_subtask_Tx   = Node_subtask( name='Proc',module=self.node.get_MCU(),
-                                                    moduleState=self.MCU_active_state, stateDuration=self.MCU_active_duration_tx)
-        self.radio_subtask_Tx = Node_subtask( name='TX'    ,module=self.node.get_radio() ,
-                                                    moduleState=self.radio_state_TX ,stateDuration=self.TX_duration)
-        self.task_tx = Node_task( name = "TX", 
-                                        node_modules= self.node.get_module_list(),                                        
-                                        subtasks   = [  self.mcu_subtask_Tx, self.radio_subtask_Tx], 
-                                        taskDuration = self.task_tx_duration, 
-                                        )
-        
+        self.MCU_active_duration_rx = MCU_active_duration_rx
+        self.I_TX  = I_TX
+        self.P_TX  = P_TX
 
-        self.RX_duration = 0
-        self.MCU_active_duration_rx = MCU_active_duration_rx 
-        self.task_rx_duration = self.MCU_active_duration_rx + self.RX_duration
-        self.mcu_subtask_Rx   = Node_subtask( name='Proc',module=self.node.get_MCU(),
-                                                    moduleState=self.MCU_active_state, stateDuration=self.MCU_active_duration_rx)
-        self.radio_subtask_Rx = Node_subtask( name='RX'    ,module=self.node.get_radio() ,
-                                                     moduleState=self.radio_state_RX ,stateDuration=self.RX_duration)
-        self.task_rx = Node_task( name = "RX", 
-                                        node_modules= self.node.get_module_list(),                           
-                                        subtasks   = [  self.mcu_subtask_Rx, self.radio_subtask_Rx ], 
-                                        taskDuration = self.task_rx_duration, 
-                                        )
-        
-        self.SF = 7
-        self.Payload = 100
-        self.Header = True
-        self.DE = None
-        self.Coding = 1
-        self.BW = 125e3
-        self.Ptx = Ptx
-        self.P_TX_interpolator = None
-        self.P_TX = []
-        self.I_TX = []
-        self.TX_duration  = LoRa.time_on_air(Payload=self.Payload,Coding=self.Coding,Header=self.Header,DE = self.DE,B = self.BW,SF=self.SF, Bytes=True)
-        self.add_task(self.task_tx,1)
-        self.add_task(self.task_rx,1)
-
-        #For settings of Link budget
-        self.PL_model = None
-        self.distance = 1
-
-    def set_TX_Power_config(self, P_TX, I_TX ):
-        if np.size(I_TX)==0 or np.size(P_TX)==0 :
-            print("Error: array provided to set_TX_Power_config is empty")
-        elif len(P_TX) != len(I_TX):
-            print("Error: arrays provided to set_TX_Power_config have different lengths")
-        else : 
-            self.I_TX = I_TX
-            self.P_TX  = P_TX
-            self.P_TX_interpolator = scipy.interpolate.interp1d(self.P_TX,self.I_TX )
-            self.set_TX_Power(Ptx=self.Ptx)
-
-    def set_TX_Power(self, Ptx=0, Itx=0):
-        if Itx==0 and self.P_TX_interpolator == None: 
-            print("Error : No power config. made and no Itx specified")
-        if np.size(self.I_TX)==0 or np.size(self.P_TX)==0 :
-            self.Ptx = Ptx
-            self.radio_state_TX.i = Itx
-        else : 
-            if(Ptx < np.min(self.P_TX)):
-                Ptx = np.min(self.P_TX)
-            elif (Ptx > np.max(self.P_TX)):
-                Ptx = np.max(self.P_TX)
-            self.Ptx = Ptx
-            self.radio_state_TX.i = self.P_TX_interpolator(Ptx)
-
-
-    #Typical :SF=7,Coding=1,Header=True,DE = None,BW = 125e3, Payload = 100, Ptx = 0, Rx_duration = 0.250
-    def set_radio_parameters(self, SF=None,Coding=None,Header=None,DE = None,BW = None, Payload = None):
-        if SF != None:
-            self.SF = SF
-        if Payload != None:
-            self.Payload = Payload
-        if Header != None:
-            self.Header = Header
-        if DE != None:
-            self.DE = DE
-        if Coding != None:
-            self.Coding = Coding
-        if BW != None:
-            self.BW = BW
-        self.compute_tx_time()
-
-    def compute_tx_time(self):
-        durationTX =  LoRa.time_on_air(Payload=self.Payload,Coding=self.Coding,Header=self.Header,DE = self.DE,B = self.BW,SF=self.SF, Bytes=True)
-        self.change_TX_duration(durationTX)
-
-    def change_TX_duration(self,duration):
-        self.TX_duration                    = duration
-        self.radio_subtask_Tx.stateDuration = duration
-        self.task_tx_duration               = duration + self.MCU_active_duration_tx
-        self.task_tx.taskDuration           = self.task_tx_duration
-
-    def change_MCU_TX_duration(self,duration):
-        self.MCU_active_duration_Tx         = duration
-        self.mcu_subtask_Tx.stateDuration   = duration
-        self.task_tx_duration               = duration + self.TX_duration
-        self.task_tx.taskDuration           = self.task_tx_duration
-
-    def change_RX_duration(self,duration):
-        self.RX_duration                    = duration
-        self.radio_subtask_Rx.stateDuration = duration
-        self.task_rx_duration               = duration + self.MCU_active_duration_rx
-        self.task_rx.taskDuration           = self.task_rx_duration
-
-    def change_MCU_RX_duration(self,duration):
-        self.MCU_active_duration_Rx         = duration
-        self.mcu_subtask_Rx.stateDuration   = duration
-        self.task_rx_duration               = duration + self.RX_duration
-        self.task_rx.taskDuration           = self.task_rx_duration
-
-    def compute(self):
-        super().compute()
-
-
-    def set_distance(self,d, recompute=False):
-        self.distance = d
-        self.set_optimal_SF_PTX_at_PL()
-        if recompute:
-            self.compute()
-
-    def set_Path_loss_model(self,PL_model, recompute=False):
-        self.PL_model = PL_model
-        self.set_optimal_SF_PTX_at_PL()
-        if recompute:
-            self.compute()
-
-    def set_optimal_SF_PTX_at_PL(self,verbose = False):
-        if self.PL_model is None:
-            raise Exception("Error : No Path loss model provided") 
-        PL = self.PL_model(self.distance)    
-        [opt_SF,opt_PTX,dummy] = optStrat.find_Opti_SF_PTX(PTX_possible = self.P_TX, PL = PL , I_PTX=self.I_TX,verbose=verbose)
-        if opt_SF == 0:
-            raise Exception("Error : Out of range for d = %.2f"%(self.distance)) 
-            return [0,0]
-        self.SF =opt_SF
-        self.set_radio_parameters(SF=opt_SF)
-        self.set_TX_Power(Ptx = opt_PTX) 
-        if verbose:
-            print("Radio parameter : SF = %d and PTx = %.1f dBm"%(opt_SF,opt_PTX))
+    def create_task_tx(self, name="None", Ptx=0, SF = 7 ,Payload = 100 ,Header = True ,DE = None ,Coding = 1 ,BW = 125e3, TX_rate=1):
+        task_tx = LoRa_TX_task(name = name, radio = self.node.radio_module, processor=self.node.MCU_module, state_Processing=self.MCU_active_state,state_TX=self.radio_TX_state,Proc_duration=self.MCU_active_duration_tx , I_TX=self.I_TX, P_TX=self.P_TX, Ptx=Ptx, SF = SF ,Payload = Payload ,Header = Header ,DE = DE ,Coding = Coding ,BW = BW  )
+        self.add_task(task_tx,TX_rate)
+        return task_tx
+    
+    def create_task_rx(self, name="None", RX_rate=0, RX_duration=0, i_rx=0):
+        task_rx = RX_task(name = name, radio = self.node.radio_module, processor=self.node.MCU_module, state_Processing=self.MCU_active_state,state_RX=self.radio_RX_state,Proc_duration=self.MCU_active_duration_rx , RX_duration=RX_duration, i_rx = i_rx )
+        self.add_task(task_rx,RX_rate)
+        return task_rx
 
 
 
@@ -194,17 +65,18 @@ if __name__ == '__main__':
     from Hardware_Modules.Node_example import *
     node = LoRa_Node(name= "IoT Node", module_list= module_List_3V3, MCU_module   = apollo_module_3V3, radio_module = radio_module_3V3)
 
-    node_prof= LoRa_Node_profile("Node_profile", node, MCU_active_state = apollo_state_active_3V3,
-                    radio_state_TX=radio_state_TX_3V3, radio_state_RX= radio_state_RX_3V3, Ptx = 2)
-                    
-        
-    node_prof.set_radio_parameters(SF=9 ,Coding=1,Header=True,DE = 1,BW = 125e3, Payload = 50) 
-    node_prof.set_TX_Power_config( P_TX= PTX_PABOOST_3V3, I_TX=I_PABoost_3V3)  
-    node_prof.set_TX_Power(Ptx = 17)
-    node_prof.change_RX_duration(250e-3)
+    node_prof= LoRa_Node_profile("Node_profile", node, MCU_active_state = apollo_state_active_3V3, RX_state=radio_state_RX_3V3,TX_state=radio_state_TX_3V3,
+                    P_TX= PTX_PABOOST_3V3, I_TX=I_PABoost_3V3, )
 
-    node_prof.change_task_rate(node_prof.task_rx,10)
-    node_prof.change_task_rate(node_prof.task_tx,24*4)
+    #LoRa_TX_task(name="1st_TX", radio = radio_module_3V3, processor=apollo_module_3V3, state_Processing=apollo_state_active_3V3, I_TX=I_PABoost_3V3, P_TX= PTX_PABOOST_3V3, Ptx = 17,SF=12 ,Coding=1,Header=True,DE = 1,BW = 125e3, Payload = 50)          
+    this_task_tx = node_prof.create_task_tx(name="1st_TX",Ptx = 17,SF=12 ,Coding=1,Header=True,DE = 1,BW = 125e3, Payload = 50, TX_rate=24*1)
+    this_task_tx.set_radio_parameters(SF=9 ,Coding=1,Header=True,DE = 1,BW = 125e3, Payload = 50) 
+    
+
+    this_task_rx = node_prof.create_task_rx(name="1st_RX", RX_rate=2, RX_duration=0.250, i_rx = I_RX_3V3 )
+
+    node_prof.change_task_rate(this_task_rx,10)
+    node_prof.change_task_rate(this_task_tx,24*4)
     node_prof.add_task(task_TPHG_3V3,24*12)
     # %%
     node_prof.compute()

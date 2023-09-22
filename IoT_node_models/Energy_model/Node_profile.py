@@ -137,7 +137,7 @@ class Node_profile:
 
                 # Update the time spent in the different state for each module
                 for subtask in task.subtasks:
-                    (subtask.get_moduleState()).add_active_time(subtask.stateDuration,self.task_rate_list[task_index])
+                    (subtask.get_moduleState()).add_active_time(subtask.stateDuration,self.task_rate_list[task_index], paramVI = subtask.get_paramVI() )
 
         if time <0:
             raise Exception("Error : With task registered, the node is busy for more than a day") 
@@ -271,6 +271,7 @@ class Node_profile:
             plt.savefig(filename+".svg", format="svg")
 
     def print_Modules(self):
+        sum_energy = 0
         print("-----------------------------------------------------------------")
         print("                        Module summary                           ")
         print("-----------------------------------------------------------------") 
@@ -278,9 +279,10 @@ class Node_profile:
         for module in self.node.get_module_list():
             print ("{:<12} {:<12} {:<12.4f} {:<12.4f} {:<12.4f}  ".format(module.get_name()," ",module.get_activeTime(),module.get_energy(),module.get_average_current()*1000))
             for state in module.state_list:
+                sum_energy = sum_energy + state.get_energy()
                 print ("{:<12} {:<12} {:<12.4f} {:<12.4f} ".format("     -",state.get_name(),state.get_activeTime(),state.get_energy()))
         print("-----------------------------------------------------------------")      
-        print ("{:<12} {:<12} {:<12} {:<12.4f}  {:<6.4f}  {:<4} ".format("Total"," "," ",self.energy,self.average_power,"[mW]"))
+        print ("{:<12} {:<12} {:<12} {:<12.4f}  {:<6.4f}  {:<4} ".format("Total"," "," ",sum_energy,sum_energy/self.time_window,"[mW]"))
         print("-----------------------------------------------------------------")
         if self.node.get_isPowered() :  
             print ("{:<12} {:<12} {:<12} {:<12} {:<12}  ".format("PMU","Vin[V]","Vout[V]","Energy [mJ]","Av. Cur.[uA]")) 

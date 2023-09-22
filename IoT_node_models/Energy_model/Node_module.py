@@ -76,7 +76,6 @@ class Node_module:
         # 2 ) For each module state, compute the energy spent
         ########################################################
         for state in self.state_list:
-            state.compute_energy()
             # Accumulate overall energy consumed by the module
             self.energy = self.energy + state.get_energy()
             # Calculate time spent in standby/default/sleep mode
@@ -91,7 +90,7 @@ class Node_module:
         ########################################################  
         self.sleep_state.set_duration(   time)
         self.sleep_state.add_active_time(time)
-        sleep_energy = self.sleep_state.compute_energy()
+        sleep_energy = self.sleep_state.get_energy()
 
         self.t_active        = time_window - time
         self.energy          = self.energy + sleep_energy
@@ -103,9 +102,9 @@ class Node_module:
     
     def add_state(self, module_state):
         if isinstance(module_state,Module_state):
-            for x in self.state_list:
-                if x.name==module_state.get_name():
-                    raise Exception("Error : Trying to add a state that is already part of the module states list") 
+            for i,x in enumerate(self.state_list):
+                if id(x)==id(module_state):
+                    self.state_list[i]=module_state
                     return
             module_state.v = self.v
             self.state_list.append(module_state)

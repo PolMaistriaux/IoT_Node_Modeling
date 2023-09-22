@@ -14,6 +14,7 @@ class Node_subtask:
         self.moduleState   = moduleState
         self.stateDuration = stateDuration
         self.useModuleDuration = useModuleDuration
+        self.paramVI       = [None,None] #Only required if the subtask changes the state info
 
     def get_module(self):
         return self.module
@@ -33,6 +34,9 @@ class Node_subtask:
     def get_name(self):
         return self.name
     
+    def get_paramVI(self):
+        return self.paramVI
+    
 
     def set_module(self, module):
         self.module = module
@@ -45,6 +49,12 @@ class Node_subtask:
     
     def set_useModuleDuration(self, useModuleDuration):
         self.useModuleDuration = useModuleDuration
+    
+    def set_param_i(self, i=0):
+        self.paramVI[1] = i
+    
+    def set_param_v(self, v=0):
+        self.paramVI[0] = v
     
     def set_name(self, name):
         self.name = name

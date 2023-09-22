@@ -77,7 +77,8 @@ class Node_task:
                 raise Exception("Error : Duration specified for this task is smaller than active time of single subtask") 
             self.moduleActiveTime[index_module] = self.moduleActiveTime[index_module] + subtaskDuration
             # Update energy of the task 
-            energy   = energy + (subtask.get_module()).get_v() * (subtask.get_moduleState()).get_i() *subtaskDuration
+            energy   = energy + subtask.get_moduleState().compute_energy(duration = subtaskDuration, paramVI = subtask.get_paramVI() )
+            
 
         ##############################################
         # 2 ) For each module, add energy in sleep
