@@ -15,12 +15,29 @@ from Energy_model.Node_task import *
 
 ##############################################################################################
 
+#%%
+import scipy.interpolate
+import numpy as np
+
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from Energy_model.Wireless_communication   import LoRa_library as LoRa
+from Energy_model.Wireless_communication   import Optimal_strategy as optStrat
+from Energy_model.Node      import *
+from Energy_model.Node_task import *
+
+
+
+##############################################################################################
+
 
 class TX_task(Node_task):
-    def __init__(self,name = "None", radio = None, processor=None, state_Processing=None, state_TX=None,Proc_duration=0,TX_duration =0, I_TX=None, P_TX=None, Ptx=0):
+    def __init__(self,name = "None", radio = None,proc_subtasks=None, modules=None, state_TX=None,TX_duration =0, I_TX=None, P_TX=None, Ptx=0):
 
         self.radio     = radio
-        self.processor = processor
+        self.modules   = modules
 
         self.state_TX      = state_TX
         self.radio.add_state(self.state_TX )
@@ -34,21 +51,12 @@ class TX_task(Node_task):
         if (I_TX is not None) and (P_TX is not None):
             self.set_TX_Power_config(self.P_TX ,  self.I_TX)
 
-        self.state_Processing       = state_Processing
-        self.substask_Processing    = Node_subtask(name='Processing ' + name ,module=processor , moduleState = self.state_Processing, stateDuration=Proc_duration)
-        self.proc_duration          = Proc_duration
+        self.proc_subtasks = proc_subtasks
 
-        super().__init__(name = name, node_modules= [radio,processor], subtasks=[self.substask_Processing, self.subtask_TX], taskDuration = self.proc_duration+self.TX_duration)
+        super().__init__(name = name, node_modules= self.modules,subtasks=self.proc_subtasks+ [self.subtask_TX])
 
     def change_TX_duration(self,duration):
         self.subtask_TX.set_stateDuration(duration)
-        self.TX_duration      = duration
-        self.taskDuration     = duration + self.proc_duration
-
-    def change_MCU_TX_duration(self,duration):
-        self.substask_Processing.set_stateDuration(duration)
-        self.proc_duration    = duration
-        self.taskDuration     = duration + self.TX_duration
 
     def set_TX_Power_config(self, P_TX, I_TX ):
         if np.size(I_TX)<=1 or np.size(P_TX)<=1 :
@@ -66,7 +74,7 @@ class TX_task(Node_task):
             print("Error : No power config. made and no Itx specified")
         if np.size(self.I_TX)==0 or np.size(self.P_TX)==0 :
             self.Ptx = Ptx
-            self.subtask_TX.set_stateParam_i(Itx)
+            self.subtask_TX.set_param_i(Itx)
         else : 
             if(Ptx < np.min(self.P_TX)):
                 Ptx = np.min(self.P_TX)
@@ -78,8 +86,8 @@ class TX_task(Node_task):
 ##############################################################################################          
 
 class LoRa_TX_task(TX_task):
-    def __init__(self,name = "None", radio = None, processor=None, state_Processing=None,state_TX=None,Proc_duration=0.3, I_TX=[], P_TX=[], Ptx=0, SF = 7 ,Payload = 100 ,Header = True ,DE = None ,Coding = 1 ,BW = 125e3  ):
-        super().__init__(name = name, radio = radio, processor=processor, state_Processing=state_Processing,state_TX=state_TX,Proc_duration=Proc_duration,TX_duration =0, I_TX=I_TX, P_TX=P_TX,Ptx=Ptx)
+    def __init__(self,name = "None", radio = None, proc_subtasks=None, modules=None, state_TX=None, I_TX=[], P_TX=[], Ptx=0, SF = 7 ,Payload = 100 ,Header = True ,DE = None ,Coding = 1 ,BW = 125e3  ):
+        super().__init__(name = name, radio = radio,proc_subtasks=proc_subtasks, modules=modules, state_TX=state_TX,TX_duration =0, I_TX=I_TX, P_TX=P_TX,Ptx=Ptx)
         self.set_radio_parameters(SF=SF,Coding=Coding,Header=Header,DE = DE,BW = BW, Payload = Payload)
         #For settings of Link budget
         self.PL_model = None
@@ -137,28 +145,19 @@ class LoRa_TX_task(TX_task):
 
 
 class RX_task(Node_task):
-    def __init__(self,name = "None", radio = None, processor=None, state_Processing=None,state_RX=None,Proc_duration=0,RX_duration =0):
+    def __init__(self,name = "None", radio = None, proc_subtasks=None,modules=None,state_RX=None,RX_duration =0):
 
-        self.radio     = radio
-        self.processor = processor
+        self.radio        = radio
+        self.modules      = modules
 
         self.state_RX      = state_RX
         self.radio.add_state(self.state_RX )
         self.subtask_RX    = Node_subtask(name='RX ' + name ,module=radio , moduleState = self.state_RX     , stateDuration=RX_duration)
         self.RX_duration   = RX_duration
 
-        self.state_Processing       = state_Processing
-        self.substask_Processing    = Node_subtask(name='Processing ' + name ,module=processor , moduleState = self.state_Processing, stateDuration=Proc_duration)
-        self.proc_duration          = Proc_duration
+        self.proc_subtasks = proc_subtasks
 
-        super().__init__(name = name, node_modules= [radio,processor], subtasks=[self.substask_Processing, self.subtask_RX], taskDuration = self.proc_duration+self.RX_duration)
+        super().__init__(name = name, node_modules= modules, subtasks=self.proc_subtasks+ [self.subtask_RX])
 
     def change_RX_duration(self,duration):
         self.subtask_RX.set_stateDuration(duration)
-        self.RX_duration      = duration
-        self.taskDuration     = duration + self.proc_duration
-
-    def change_MCU_RX_duration(self,duration):
-        self.substask_Processing.set_stateDuration(duration)
-        self.proc_duration    = duration
-        self.taskDuration     = duration + self.RX_duration

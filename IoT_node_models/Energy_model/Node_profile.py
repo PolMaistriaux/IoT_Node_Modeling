@@ -277,7 +277,7 @@ class Node_profile:
         print("-----------------------------------------------------------------") 
         print ("{:<12} {:<12} {:<12} {:<12} {:<12}  ".format("Module","State","Active [s]","Energy [mJ]","Av. Cur.[uA]"))
         for module in self.node.get_module_list():
-            print ("{:<12} {:<12} {:<12.4f} {:<12.4f} {:<12.4f}  ".format(module.get_name()," ",module.get_activeTime(),module.get_energy(),module.get_average_current()*1000))
+            print ("{:<12} {:<12} {:<12.4f} {:<12.4f} {:<12.7f}  ".format(module.get_name()," ",module.get_activeTime(),module.get_energy(),module.get_average_current()*1000))
             for state in module.state_list:
                 sum_energy = sum_energy + state.get_energy()
                 print ("{:<12} {:<12} {:<12.4f} {:<12.4f} ".format("     -",state.get_name(),state.get_activeTime(),state.get_energy()))

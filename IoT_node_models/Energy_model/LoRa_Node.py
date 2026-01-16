@@ -25,13 +25,12 @@ from Energy_model.Node_task import *
 #       * Header
 ################################
 class LoRa_Node(Node):
-    def __init__(self,name = "None", module_list=[], PMU_composition =[], Battery = None, MCU_module = None, radio_module = None): 
+    def __init__(self,name = "None", module_list=[], PMU_composition =[], Battery = None, radio_module = None): 
         super().__init__(name = name, module_list = module_list , PMU_composition = PMU_composition, Battery = Battery)
-        self.MCU_module       = MCU_module
-        self.radio_module     = radio_module
+        self.radio_module      = radio_module
 
-    def get_MCU(self) :
-        return self.MCU_module
+    def get_Processing_modules(self) :
+        return self.proc_module
     
     def get_radio(self) :
         return self.radio_module

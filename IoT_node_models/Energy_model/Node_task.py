@@ -22,7 +22,9 @@ class Node_task:
         self.node_modules  = node_modules
         self.moduleActiveTime = [0]*len(node_modules)
         self.subtasks = subtasks
-        self.taskDuration  = taskDuration
+        self.taskDuration_isSet    = (taskDuration!=0)
+        self.taskDuration_set      = taskDuration
+        self.taskDuration_computed = 0
         self.energy_task   = 0
 
     def get_energy_task(self):
@@ -35,7 +37,10 @@ class Node_task:
         return self.name
     
     def get_taskDuration(self):
-        return self.taskDuration
+        if self.taskDuration_isSet:
+            return self.taskDuration_set
+        else:
+            return self.taskDuration_computed
     
     def get_moduleActiveTime(self):
         return self.moduleActiveTime
@@ -49,12 +54,20 @@ class Node_task:
         self.name = name
 
     def set_taskDuration(self, taskDuration):
-        self.taskDuration = taskDuration
+        self.taskDuration_set      = taskDuration
+        self.taskDuration_isSet    = True
+        self.reset_task()
+    
+    def set_compute_taskDuration(self):
+        self.taskDuration_set      = 0
+        self.taskDuration_isSet    = False
+        self.taskDuration_computed = 0
         self.reset_task()
 
 
     def reset_task(self):
         self.energy_task   = 0
+        self.taskDuration_computed = 0
         self.moduleActiveTime = [0]*len(self.node_modules)
 
     def compute_energy_task(self):
@@ -73,8 +86,9 @@ class Node_task:
             subtaskDuration = subtask.get_stateDuration() 
             if subtaskDuration == None:
                 raise Exception("Error : No duration given for this substask (either specified or from module state)") 
-            if self.taskDuration < subtaskDuration:
+            if self.taskDuration_isSet and (self.taskDuration_set < subtaskDuration):
                 raise Exception("Error : Duration specified for this task is smaller than active time of single subtask") 
+            self.taskDuration_computed = self.taskDuration_computed + subtaskDuration
             self.moduleActiveTime[index_module] = self.moduleActiveTime[index_module] + subtaskDuration
             # Update energy of the task 
             energy   = energy + subtask.get_moduleState().compute_energy(duration = subtaskDuration, paramVI = subtask.get_paramVI() )
@@ -83,8 +97,9 @@ class Node_task:
         ##############################################
         # 2 ) For each module, add energy in sleep
         ##############################################
+        taskDuration = self.get_taskDuration()
         for index, module in enumerate(self.node_modules):
-            energy   = energy + module.get_i_sleep() * module.get_v() * (self.taskDuration - self.moduleActiveTime[index])
+            energy   = energy + module.get_i_sleep() * module.get_v() * (taskDuration - self.moduleActiveTime[index])
 
         self.energy_task = energy
         return energy

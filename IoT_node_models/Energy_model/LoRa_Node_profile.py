@@ -32,23 +32,22 @@ except :
 #       * Header
 ################################
 class LoRa_Node_profile(Node_profile):
-    def __init__(self,name = "None",LoRa_node = None, time_window=(24*60*60), MCU_active_state =None, MCU_active_duration_tx = 0.3, MCU_active_duration_rx = 0.3,RX_state=None,TX_state=None, I_TX=None, P_TX=None): 
+    def __init__(self,name = "None",LoRa_node = None, time_window=(24*60*60), Proc_subtask_tx=[], Proc_subtask_rx=[],RX_state=None,TX_state=None, I_TX=None, P_TX=None): 
         super().__init__(name = name,node = LoRa_node, time_window=time_window)
         self.radio_RX_state         = RX_state
         self.radio_TX_state         = TX_state
-        self.MCU_active_state       = MCU_active_state
-        self.MCU_active_duration_tx = MCU_active_duration_tx
-        self.MCU_active_duration_rx = MCU_active_duration_rx
+        self.proc_subtask_tx        = Proc_subtask_tx
+        self.proc_subtask_rx        = Proc_subtask_rx
         self.I_TX  = I_TX
         self.P_TX  = P_TX
 
     def create_task_tx(self, name="None", Ptx=0, SF = 7 ,Payload = 100 ,Header = True ,DE = None ,Coding = 1 ,BW = 125e3, TX_rate=1):
-        task_tx = LoRa_TX_task(name = name, radio = self.node.radio_module, processor=self.node.MCU_module, state_Processing=self.MCU_active_state,state_TX=self.radio_TX_state,Proc_duration=self.MCU_active_duration_tx , I_TX=self.I_TX, P_TX=self.P_TX, Ptx=Ptx, SF = SF ,Payload = Payload ,Header = Header ,DE = DE ,Coding = Coding ,BW = BW  )
+        task_tx = LoRa_TX_task(name = name, radio = self.node.radio_module,proc_subtasks=self.proc_subtask_tx, modules=self.node.module_list,state_TX=self.radio_TX_state , I_TX=self.I_TX, P_TX=self.P_TX, Ptx=Ptx, SF = SF ,Payload = Payload ,Header = Header ,DE = DE ,Coding = Coding ,BW = BW  )
         self.add_task(task_tx,TX_rate)
         return task_tx
     
-    def create_task_rx(self, name="None", RX_rate=0, RX_duration=0, i_rx=0):
-        task_rx = RX_task(name = name, radio = self.node.radio_module, processor=self.node.MCU_module, state_Processing=self.MCU_active_state,state_RX=self.radio_RX_state,Proc_duration=self.MCU_active_duration_rx , RX_duration=RX_duration, i_rx = i_rx )
+    def create_task_rx(self, name="None", RX_rate=0, RX_duration=0):
+        task_rx = RX_task(name = name, radio = self.node.radio_module,proc_subtasks=self.proc_subtask_rx, modules=self.node.module_list,state_RX=self.radio_RX_state, RX_duration=RX_duration)
         self.add_task(task_rx,RX_rate)
         return task_rx
 

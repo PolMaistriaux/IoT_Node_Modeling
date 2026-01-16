@@ -6,9 +6,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Energy_model'))
 from Energy_model.Node_profile import *
 
 #BME680 no AI: AVERAGE POWER
-BME_sleepCur_3V3 = 0.032796386921874914#0.15e-3 #0.15e-3 #
-BME_sleepCur_1V8 = 0.0005              #0.037   with EVB
-BME_sleepCur_Data= 0.032796386921874914 
+BME_sleepCur_3V3 = 0.15e-3 #with EVB     0.032796386921874914 
+BME_sleepCur_1V8 = 0.037   #with EVB     0.0005
+BME_sleepCur_Data= 0.15e-3
 BME_voltage_3V3  = 3.3
 BME_voltage_1V8  = 1.8
     #Temperature only
