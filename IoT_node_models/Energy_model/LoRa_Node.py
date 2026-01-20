@@ -29,8 +29,6 @@ class LoRa_Node(Node):
         super().__init__(name = name, module_list = module_list , PMU_composition = PMU_composition, Battery = Battery)
         self.radio_module      = radio_module
 
-    def get_Processing_modules(self) :
-        return self.proc_module
     
     def get_radio(self) :
         return self.radio_module

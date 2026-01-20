@@ -43,5 +43,5 @@ def deployment_battery_replacement( Replacement_type = "Complete",Footprint=None
     
     Deployment_footprint_2 = Placement_cost + Replacement_cost * np.max([0,(Nyears/lifetime)-1]) + Decom_cost
     Deployment_footprint_2 = Deployment_footprint_2/Nyears
-    Deployment_footprint = Deployment_footprint/Nyears
+    Deployment_footprint   = Deployment_footprint/Nyears
     return [Deployment_footprint,Deployment_footprint_2,lifetime,power]
