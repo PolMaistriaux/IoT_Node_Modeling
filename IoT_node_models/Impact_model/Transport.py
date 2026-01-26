@@ -25,3 +25,19 @@ def transport_cost(worker = 1, salary_p_hour = 20, work_hour =1, km_p_h = 50,km_
         return fixed_cost + km*cost_p_tkm*weight_g/10e6
     else: 
         print("Error in type specification for transport footprint calculation")
+
+
+
+
+####################################################
+def F_trans(km):
+    return transport_footprint(km_one_way = km, type ="Unit", 
+                            weight_g = 500,  footprint_p_tkm = 0.545,
+                            unit_factor = 1,footprint_p_km = 0.350,km_fixed = 5)
+
+####################################################
+def C_trans(km):
+    return transport_cost(  worker = 1, salary_p_hour = 5, work_hour =10/60, km_p_h = 50,km_one_way = km, 
+                            type ="Unit", 
+                            weight_g = 500, cost_p_tkm =  0.2/1e3,
+                            unit_factor = 1,cost_p_km = 0.2)

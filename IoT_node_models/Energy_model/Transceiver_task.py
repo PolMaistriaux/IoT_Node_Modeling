@@ -118,6 +118,10 @@ class LoRa_TX_task(TX_task):
     def set_distance(self,d):
         self.distance = d
         self.set_optimal_SF_PTX_at_PL()
+    
+    def get_distance(self):
+        return self.distance
+        
 
     def set_Path_loss_model(self,PL_model):
         self.PL_model = PL_model
