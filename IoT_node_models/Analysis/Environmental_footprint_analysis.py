@@ -26,8 +26,6 @@ from IoT_node_models.Impact_model import *
 
 path_to_save_svg = "SavedFiles"
 
-path_to_save_svg = "SavedFiles"
-
 ########################################################################################################
 
 def deployment_sweep_fdata  (Replacement_strategy = False,Footprint=None,Node=None,Nyears= 100,rsd = 3,dtrans = 10, nAA = [], param = [], paramType =None, fmax=100, f_step=1, Task = None,transport_model=None,filename=None,figsize=(7,6)):   
