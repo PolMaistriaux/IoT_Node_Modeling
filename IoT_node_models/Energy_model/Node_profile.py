@@ -1,5 +1,6 @@
 #%%
 import numpy as np
+from matplotlib import patches as mpatches
 
 
 from Energy_model.Node_module import *
@@ -174,21 +175,35 @@ class Node_profile:
             return self.node
 
 
-    def plot_Power(self,save=False,filename="test"):
+    def plot_Power(self,save=False,filename="test", plotSubtask = False):
         fig, ax = plt.subplots(2,1,figsize =(6, 10))
 
         task_energy = []
         task_label  = []
-        task_duration = []
         colors_task = []
+        patches_list = []
         colors = listColor
         i=0
-        for task_index,task in enumerate(self.task_list) :
-            task_energy.append(task.get_energy_task() * self.task_rate_list[task_index])
-            task_label.append(task.get_name())
-            task_duration.append(task.get_taskDuration()*self.task_rate_list[task_index])
-            colors_task.append(colors[i]) 
-            i=i+1
+        j=0
+
+        if plotSubtask :
+            for task_index,task in enumerate(self.task_list) :
+                if (task.get_energy_task()* self.task_rate_list[task_index] != 0) :
+                    patches_list.append( mpatches.Patch(color=colors[i], label=task.get_name()))
+                    for subtask_index, subtask in enumerate (task.subtasks) :
+                        task_energy.append(subtask.get_energy() * self.task_rate_list[task_index])
+                        task_label.append(subtask.get_name())
+                        colors_task.append(colors[i]) 
+                        patches_list.append( mpatches.Patch(color='white', label=subtask.get_name()))
+                        
+                        j=j+1
+                    i=i+1
+        else :
+            for task_index,task in enumerate(self.task_list) :
+                task_energy.append(task.get_energy_task() * self.task_rate_list[task_index])
+                task_label.append(task.get_name())
+                colors_task.append(colors[i]) 
+                i=i+1
 
         labels0 = [('{}'+'\n'*int(100*b>7)+'({:.1f}%)').format(a,100*b)*int(100*b>0.5) for a,b in zip(task_label,np.asarray(task_energy)/self.energy)]
         patches0, texts0 = ax[0].pie(task_energy, labels = labels0, 
@@ -200,7 +215,12 @@ class Node_profile:
         for i, patch in enumerate(patches0):
             texts0[i].set_color(patch.get_facecolor())
             texts0[i].set_fontsize(15)
-        ax[0].legend(task_label,bbox_to_anchor=(1,0.5), bbox_transform=plt.gcf().transFigure, loc="lower right",fontsize = 12)
+
+        if plotSubtask :
+            
+            ax[0].legend(handles=patches_list,bbox_to_anchor=(1.5,0.5), bbox_transform=plt.gcf().transFigure, loc="lower right",fontsize = 12)
+        else:
+            ax[0].legend(task_label,bbox_to_anchor=(1.5,0.5), bbox_transform=plt.gcf().transFigure, loc="lower right",fontsize = 12)
 
         module_task_energy = []
         module_task_label  = []
@@ -237,6 +257,8 @@ class Node_profile:
         fig.suptitle("Power consumption over 1 day : %s\nTotal = %8.3f [mW]" %(self.name,self.average_power),fontsize = 17,color='black')
         if(save):
             plt.savefig(filename+".svg", format="svg")
+
+
 
 
 

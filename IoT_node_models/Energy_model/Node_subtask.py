@@ -14,8 +14,12 @@ class Node_subtask:
         self.moduleState   = moduleState
         self.stateDuration = stateDuration
         self.useModuleDuration = useModuleDuration
+        self.energy        = 0
         self.paramVI       = [None,None] #Only required if the subtask changes the state info
 
+    def reset_energy(self):
+        self.energy = 0
+    
     def get_module(self):
         return self.module
     
@@ -34,12 +38,15 @@ class Node_subtask:
     def get_name(self):
         return self.name
     
+    def get_energy(self):
+        return self.energy
+    
     def get_paramVI(self):
         return self.paramVI
     
-
     def set_module(self, module):
         self.module = module
+
     
     def set_moduleState(self, moduleState):
         self.moduleState = moduleState
@@ -49,6 +56,7 @@ class Node_subtask:
     
     def set_useModuleDuration(self, useModuleDuration):
         self.useModuleDuration = useModuleDuration
+
     
     def set_param_i(self, i=0):
         self.paramVI[1] = i
@@ -60,3 +68,6 @@ class Node_subtask:
         self.name = name
 
 
+    def compute_energy(self):
+        self.energy = self.get_moduleState().compute_energy(duration = self.get_stateDuration(), paramVI = self.get_paramVI() )
+        return self.energy

@@ -66,6 +66,8 @@ class Node_task:
 
 
     def reset_task(self):
+        for subtask in self.subtasks:
+            subtask.reset_energy()
         self.energy_task   = 0
         self.taskDuration_computed = 0
         self.moduleActiveTime = [0]*len(self.node_modules)
@@ -91,7 +93,7 @@ class Node_task:
             self.taskDuration_computed = self.taskDuration_computed + subtaskDuration
             self.moduleActiveTime[index_module] = self.moduleActiveTime[index_module] + subtaskDuration
             # Update energy of the task 
-            energy   = energy + subtask.get_moduleState().compute_energy(duration = subtaskDuration, paramVI = subtask.get_paramVI() )
+            energy   = energy + subtask.compute_energy( )
             
 
         ##############################################
