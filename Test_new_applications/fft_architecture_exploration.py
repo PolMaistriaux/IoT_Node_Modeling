@@ -79,6 +79,10 @@ def scale_latency (latency= 1, nfft_ref = 1, nfft = 1, acc_type ="Memory-b"):
             latency_scaled[i] = latency[i] * nfft_ref / nfft[i]
     return latency_scaled
 
+
+######################
+# Architecture exploration
+######################
 nFFT = 4096
 lFFT = int(np.log2(nFFT))
 
@@ -87,15 +91,14 @@ baseline_energy  = 4096* 5.85e-9
 baseline_latency = 4096* 80
 baseline_power   = baseline_energy / baseline_latency
 
-sp_mem_size  = np.array([4096   ,   2048  ,  1024   , 512    ,  256     ] )                 
-sp_mem_area  = np.array([0.0945 ,   0.0563,  0.0327 , 0.0202 ,  0.0152  ] )                 
-sp_mem_e     = np.array([20.366 ,   14.951,  11.484 , 10.045 ,  4.04    ] ) *1.2 * 1e-3                 
+sp_mem_size  = np.array([4096   ,   2048  ,  1024   , 512    ,  256     ,  128   ] )                 
+sp_mem_area  = np.array([0.0945 ,   0.0563,  0.0327 , 0.0202 ,  0.0152  ,  0.0098] )                 
+sp_mem_e     = np.array([20.366 ,   14.951,  11.484 , 10.045 ,  4.04    ,  3.814 ] ) *1.2 * 1e-3                 
 
 
-dp_mem_size  = np.array([4096   ,   2048  ,  1024   , 512    ,  256     ] )                 
-dp_mem_area  = np.array([0.1984 ,   0.1040,  0.0567 , 0.0371 ,  0.0159  ] )                 
-dp_mem_e     = np.array([19.65  ,   16.105,  14.325 , 12.23  ,  5.047   ] ) *1.2 * 1e-3             
-
+dp_mem_size  = np.array([4096   ,   2048  ,  1024   , 512    ,  256    ,  128    ] )                 
+dp_mem_area  = np.array([0.1984 ,   0.1040,  0.0567 , 0.0371 ,  0.0159 ,  0.0111 ] )                 
+dp_mem_e     = np.array([19.65  ,   16.105,  14.325 , 12.23  ,  5.047  ,  4.365  ] ) *1.2 * 1e-3             
 
 half_bf_area = 0.0011/2
 cmult_e      = 16*1e-3  
@@ -108,6 +111,8 @@ paraPipeLevel = np.array([1 , 1 , 2 , 3 ,  4 ])
 
 arch_Dim = max(len(paraLevel),len(pipeLevel),len(paraPipeLevel))
 
+Mem_type = 4
+
 if (len(paraLevel) != len(pipeLevel)) or (len(paraLevel) != len(paraPipeLevel)):
     print("Architecture parameters of different sizes, will cause issue")
     raise ValueError
@@ -116,39 +121,39 @@ if (len(paraLevel) != len(pipeLevel)) or (len(paraLevel) != len(paraPipeLevel)):
 # The three different equations represent the use of a single port, two single port, or a dual-port
 
 #Based on parallelism level
-para_theor_Area     = np.zeros((len(paraLevel),3))
-para_theor_Latency  = np.zeros((len(paraLevel),3))
-para_theor_Energy   = np.zeros((len(paraLevel),3))
+para_theor_Area     = np.zeros((len(paraLevel),Mem_type))
+para_theor_Latency  = np.zeros((len(paraLevel),Mem_type))
+para_theor_Energy   = np.zeros((len(paraLevel),Mem_type))
 for i, paraLv in enumerate(paraLevel):
-    para_theor_Area    [i] = np.array([(sp_mem_area[i]  +half_bf_area)*paraLv    , (sp_mem_area[i]*2+half_bf_area)*paraLv    , (dp_mem_area[i]  +half_bf_area)*paraLv        ]   )
-    para_theor_Latency [i] = np.array([ nFFT*lFFT*2/paraLv                         ,  nFFT*lFFT/paraLv                           ,  nFFT*lFFT/paraLv                               ]   )
-    para_theor_Energy  [i] = np.array([(cmult_e/2+sp_mem_e[i]*2)*nFFT*lFFT         , (cmult_e/2+sp_mem_e[i]*2)*nFFT*lFFT         , (cmult_e/2+dp_mem_e[i]*2)*nFFT*lFFT             ]   )*1e-9 
+    para_theor_Area    [i] = np.array([(sp_mem_area[i]  +half_bf_area)*paraLv      , (sp_mem_area[i]*2+half_bf_area)*paraLv  , (2*sp_mem_area[i+1]  +half_bf_area)*paraLv       , (dp_mem_area[i]  +half_bf_area)*paraLv        ]   )
+    para_theor_Latency [i] = np.array([ nFFT*lFFT*2/paraLv                         ,  nFFT*lFFT/paraLv                       ,  nFFT*lFFT/paraLv                                ,  nFFT*lFFT/paraLv                               ]   )
+    para_theor_Energy  [i] = np.array([(cmult_e/2+sp_mem_e[i]*2)*nFFT*lFFT         , (cmult_e/2+sp_mem_e[i]*2)*nFFT*lFFT     , (cmult_e/2+sp_mem_e[i+1]*2)*nFFT*lFFT            , (cmult_e/2+dp_mem_e[i]*2)*nFFT*lFFT             ]   )*1e-9 
     
 para_theor_Speedup        = baseline_latency        / para_theor_Latency                                
 para_theor_Power          = para_theor_Energy       / para_theor_Latency
    
 
 #Based on pipeline level
-pipe_theor_Area     = np.zeros((len(pipeLevel),3))
-pipe_theor_Latency  = np.zeros((len(pipeLevel),3))
-pipe_theor_Energy   = np.zeros((len(pipeLevel),3))
+pipe_theor_Area     = np.zeros((len(pipeLevel),Mem_type))
+pipe_theor_Latency  = np.zeros((len(pipeLevel),Mem_type))
+pipe_theor_Energy   = np.zeros((len(pipeLevel),Mem_type))
 for i, pipeLv in enumerate(pipeLevel):
-    pipe_theor_Area    [i,:] = np.array([sp_mem_area[0] + (half_bf_area*pipeLv)        , sp_mem_area[0]*2 + (half_bf_area*pipeLv)   ,  dp_mem_area[0] + (half_bf_area*pipeLv)      ] )    
-    pipe_theor_Latency [i,:] = np.array([ nFFT*lFFT*2/pipeLv                             ,  nFFT*lFFT/pipeLv                            ,  nFFT*lFFT/pipeLv                              ] )              
-    pipe_theor_Energy  [i,:] = np.array([ nFFT*lFFT*(cmult_e/2 +(sp_mem_e[0]*2/pipeLv))  , nFFT*lFFT*(cmult_e/2 +(sp_mem_e[0]*2/pipeLv)), nFFT*lFFT*(cmult_e/2 +(dp_mem_e[0]*2/pipeLv))  ] )  *1e-9           
+    pipe_theor_Area    [i,:] = np.array([sp_mem_area[0] + (half_bf_area*pipeLv)          , sp_mem_area[0]*2 + (half_bf_area*pipeLv)        ,   (2*sp_mem_area[1]) + (half_bf_area*pipeLv)         ,  dp_mem_area[0] + (half_bf_area*pipeLv)      ] )    
+    pipe_theor_Latency [i,:] = np.array([ nFFT*lFFT*2/pipeLv                             ,  nFFT*lFFT/pipeLv                               ,    nFFT*lFFT/pipeLv                                  ,  nFFT*lFFT/pipeLv                              ] )              
+    pipe_theor_Energy  [i,:] = np.array([ nFFT*lFFT*(cmult_e/2 +(sp_mem_e[0]*2/pipeLv))  , nFFT*lFFT*(cmult_e/2 +(sp_mem_e[0]*2/pipeLv))   ,    nFFT*lFFT*(cmult_e/2 +(sp_mem_e[1]*2/pipeLv))     , nFFT*lFFT*(cmult_e/2 +(dp_mem_e[0]*2/pipeLv))  ] )  *1e-9           
     
 pipe_theor_Speedup        = baseline_latency        / pipe_theor_Latency                                
 pipe_theor_Power          = pipe_theor_Energy       / pipe_theor_Latency
 
 
 #Based on pipeline level
-pipePara_theor_Area     = np.zeros((len(paraPipeLevel),3))
-pipePara_theor_Latency  = np.zeros((len(paraPipeLevel),3))
-pipePara_theor_Energy   = np.zeros((len(paraPipeLevel),3))
+pipePara_theor_Area     = np.zeros((len(paraPipeLevel),Mem_type))
+pipePara_theor_Latency  = np.zeros((len(paraPipeLevel),Mem_type))
+pipePara_theor_Energy   = np.zeros((len(paraPipeLevel),Mem_type))
 for i, ppLv in enumerate(paraPipeLevel):
-    pipePara_theor_Area    [i] = np.array([(sp_mem_area[i]  +half_bf_area*ppLv)*paraLevel[i]    , (sp_mem_area[i]*2  +half_bf_area*ppLv)*paraLevel[i]    ,  (dp_mem_area[i]  +half_bf_area*ppLv)*paraLevel[i]   ]  )   
-    pipePara_theor_Latency [i] = np.array([ (nFFT/paraLevel[i])*(lFFT/ppLv)*2                     , (nFFT/paraLevel[i])*(lFFT/ppLv)                          ,  (nFFT/paraLevel[i])*(lFFT/ppLv)                       ]  )            
-    pipePara_theor_Energy  [i] = np.array([ nFFT*lFFT*(cmult_e/2 +(sp_mem_e[i]*2/ppLv))           , nFFT*lFFT*(cmult_e/2 +(sp_mem_e[i]*2/ppLv))              , nFFT*lFFT*(cmult_e/2 +(dp_mem_e[i]*2/ppLv))            ]  )    *1e-9      
+    pipePara_theor_Area    [i] = np.array([(sp_mem_area[i]  +half_bf_area*ppLv)*paraLevel[i]      , (sp_mem_area[i]*2  +half_bf_area*ppLv)*paraLevel[i]   , (2*sp_mem_area[i+1]  +half_bf_area*ppLv)*paraLevel[i]   ,  (dp_mem_area[i]  +half_bf_area*ppLv)*paraLevel[i]   ]  )   
+    pipePara_theor_Latency [i] = np.array([ (nFFT/paraLevel[i])*(lFFT/ppLv)*2                     , (nFFT/paraLevel[i])*(lFFT/ppLv)                       ,  (nFFT/paraLevel[i])*(lFFT/ppLv)                        ,  (nFFT/paraLevel[i])*(lFFT/ppLv)                       ]  )            
+    pipePara_theor_Energy  [i] = np.array([ nFFT*lFFT*(cmult_e/2 +(sp_mem_e[i]*2/ppLv))           , nFFT*lFFT*(cmult_e/2 +(sp_mem_e[i]*2/ppLv))           ,  nFFT*lFFT*(cmult_e/2 +(sp_mem_e[i+1]*2/ppLv))          , nFFT*lFFT*(cmult_e/2 +(dp_mem_e[i]*2/ppLv))            ]  )    *1e-9      
    
 pipePara_theor_Speedup        = baseline_latency            / pipePara_theor_Latency                                
 pipePara_theor_Power          = pipePara_theor_Energy       / pipePara_theor_Latency 
