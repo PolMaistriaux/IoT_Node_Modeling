@@ -129,9 +129,6 @@ for i, paraLv in enumerate(paraLevel):
     para_theor_Latency [i] = np.array([ nFFT*lFFT*2/paraLv                         ,  nFFT*lFFT/paraLv                       ,  nFFT*lFFT/paraLv                                ,  nFFT*lFFT/paraLv                               ]   )
     para_theor_Energy  [i] = np.array([(cmult_e/2+sp_mem_e[i]*2)*nFFT*lFFT         , (cmult_e/2+sp_mem_e[i]*2)*nFFT*lFFT     , (cmult_e/2+sp_mem_e[i+1]*2)*nFFT*lFFT            , (cmult_e/2+dp_mem_e[i]*2)*nFFT*lFFT             ]   )*1e-9 
     
-para_theor_Speedup        = baseline_latency        / para_theor_Latency                                
-para_theor_Power          = para_theor_Energy       / para_theor_Latency
-   
 
 #Based on pipeline level
 pipe_theor_Area     = np.zeros((len(pipeLevel),Mem_type))
@@ -142,9 +139,6 @@ for i, pipeLv in enumerate(pipeLevel):
     pipe_theor_Latency [i,:] = np.array([ nFFT*lFFT*2/pipeLv                             ,  nFFT*lFFT/pipeLv                               ,    nFFT*lFFT/pipeLv                                  ,  nFFT*lFFT/pipeLv                              ] )              
     pipe_theor_Energy  [i,:] = np.array([ nFFT*lFFT*(cmult_e/2 +(sp_mem_e[0]*2/pipeLv))  , nFFT*lFFT*(cmult_e/2 +(sp_mem_e[0]*2/pipeLv))   ,    nFFT*lFFT*(cmult_e/2 +(sp_mem_e[1]*2/pipeLv))     , nFFT*lFFT*(cmult_e/2 +(dp_mem_e[0]*2/pipeLv))  ] )  *1e-9           
     
-pipe_theor_Speedup        = baseline_latency        / pipe_theor_Latency                                
-pipe_theor_Power          = pipe_theor_Energy       / pipe_theor_Latency
-
 
 #Based on pipeline level
 pipePara_theor_Area     = np.zeros((len(paraPipeLevel),Mem_type))
@@ -155,48 +149,5 @@ for i, ppLv in enumerate(paraPipeLevel):
     pipePara_theor_Latency [i] = np.array([ (nFFT/paraLevel[i])*(lFFT/ppLv)*2                     , (nFFT/paraLevel[i])*(lFFT/ppLv)                       ,  (nFFT/paraLevel[i])*(lFFT/ppLv)                        ,  (nFFT/paraLevel[i])*(lFFT/ppLv)                       ]  )            
     pipePara_theor_Energy  [i] = np.array([ nFFT*lFFT*(cmult_e/2 +(sp_mem_e[i]*2/ppLv))           , nFFT*lFFT*(cmult_e/2 +(sp_mem_e[i]*2/ppLv))           ,  nFFT*lFFT*(cmult_e/2 +(sp_mem_e[i+1]*2/ppLv))          , nFFT*lFFT*(cmult_e/2 +(dp_mem_e[i]*2/ppLv))            ]  )    *1e-9      
    
-pipePara_theor_Speedup        = baseline_latency            / pipePara_theor_Latency                                
-pipePara_theor_Power          = pipePara_theor_Energy       / pipePara_theor_Latency 
 
 
-theor_Area             = np.array([pipe_theor_Area         ,  para_theor_Area     ,  pipePara_theor_Area])
-theor_Latency          = np.array([pipe_theor_Latency      ,  para_theor_Latency  ,  pipePara_theor_Latency])
-theor_Energy           = np.array([pipe_theor_Energy       ,  para_theor_Energy   ,  pipePara_theor_Energy])
-theor_Speedup          = np.array([pipe_theor_Speedup      ,  para_theor_Speedup  ,  pipePara_theor_Speedup])                              
-theor_Power            = np.array([pipe_theor_Power        ,  para_theor_Power    ,  pipePara_theor_Power]) 
-
-
-# ----------------------------------------------------------------------
-#           RATIO
-# ----------------------------------------------------------------------
-
-para_theor_area_ratio    = (para_theor_Area+baseline_area)    / baseline_area
-para_theor_power_ratio   = para_theor_Power   / baseline_power
-para_theor_energy_ratio  = para_theor_Energy  / baseline_energy
-para_theor_latency_ratio = para_theor_Latency / baseline_latency
-para_theor_speedup_ratio = 1/(para_theor_latency_ratio)
-
-
-# ----------------------------------------------------------------------
-pipe_theor_area_ratio    = (pipe_theor_Area+baseline_area)    / baseline_area
-pipe_theor_power_ratio   = pipe_theor_Power   / baseline_power
-pipe_theor_energy_ratio  = pipe_theor_Energy  / baseline_energy
-pipe_theor_latency_ratio = pipe_theor_Latency / baseline_latency
-pipe_theor_speedup_ratio = 1/(pipe_theor_latency_ratio)
-
-
-# ----------------------------------------------------------------------
-pipePara_theor_area_ratio    = (pipePara_theor_Area+baseline_area)    / baseline_area
-pipePara_theor_power_ratio   = pipePara_theor_Power   / baseline_power
-pipePara_theor_energy_ratio  = pipePara_theor_Energy  / baseline_energy
-pipePara_theor_latency_ratio = pipePara_theor_Latency / baseline_latency
-pipePara_theor_speedup_ratio = 1/(pipePara_theor_latency_ratio)
-
-# ----------------------------------------------------------------------
-
-
-theor_area_ratio        = np.array([pipe_theor_area_ratio       , para_theor_area_ratio    , pipePara_theor_area_ratio])
-theor_power_ratio       = np.array([pipe_theor_power_ratio      , para_theor_power_ratio   , pipePara_theor_power_ratio])
-theor_energy_ratio      = np.array([pipe_theor_energy_ratio     , para_theor_energy_ratio  , pipePara_theor_energy_ratio])
-theor_latency_ratio     = np.array([pipe_theor_latency_ratio    , para_theor_latency_ratio , pipePara_theor_latency_ratio])                              
-theor_speedup_ratio     = np.array([pipe_theor_speedup_ratio    , para_theor_speedup_ratio , pipePara_theor_speedup_ratio]) 
