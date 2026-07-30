@@ -28,6 +28,20 @@ def asi_function(alpha = 0.5, area_ratio  = 1, power_ratio = 1 ,print=False):
     return (1- (alpha * area_ratio))/( (1 - alpha) * power_ratio)
 
 
+def calc_critical_alphas(area_ratio, power_ratio,energy_ratio):
+
+    alpha_crit_nfw = (1-energy_ratio)/(area_ratio-energy_ratio)
+    alpha_crit_nft = (1-power_ratio)/(area_ratio-power_ratio)
+    
+    return np.array([alpha_crit_nfw,alpha_crit_nft])
+
+def integ_alphas(area_ratio, power_ratio,energy_ratio):
+
+    integ_alpha_nfw = (area_ratio-energy_ratio)/2 + energy_ratio 
+    integ_alpha_nft = (area_ratio-power_ratio) /2 + power_ratio 
+    
+    return np.array([integ_alpha_nfw,integ_alpha_nft])
+
 def asi_critical_alpha(area_ratio, power_ratio, speedup):
     """Alpha at which NCF_ratio == 1 (breakeven).
     Only meaningful in the classic accelerator case A_ratio>1, E_ratio<1
