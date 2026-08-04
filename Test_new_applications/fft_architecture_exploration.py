@@ -64,13 +64,27 @@ def asi_classify(asi = 1, speedup = 1):
     'unsust'  : loses on both axes -> unsustainable for ALL alpha
     'weak'    : trade-off -> depends on alpha (the expected accelerator case)
     """
-    both_better = (asi > 1.0) & (asi > (1/speedup))
+    both_better = (asi > 1.0)  & (asi > (1/speedup))
     both_worse  = (asi <= 1.0) & (asi <= (1/speedup))
     region = np.full(asi.shape, 'weak', dtype=object)
     region[both_better] = 'strong'
     region[both_worse] = 'unsust'
     return region
 
+def asi_class_count(asi = 1, speedup = 1):
+    """Region classification, alpha-independent:
+    'strong'  : wins on both axes -> sustainable for ALL alpha
+    'unsust'  : loses on both axes -> unsustainable for ALL alpha
+    'weak'    : trade-off -> depends on alpha (the expected accelerator case)
+    """
+    tot = len(asi)
+    both_better = (asi > 1.0)  & (asi > (1/speedup))
+    both_worse  = (asi <= 1.0) & (asi <= (1/speedup))
+    region = np.full(asi.shape, 'weak', dtype=object)
+    count_strong = np.sum(both_better)
+    count_not    = np.sum(both_worse)
+    count_weak   = tot-count_not-count_strong
+    return np.array([count_strong/tot, (count_strong+count_weak)/tot, count_not/tot ])
 
 ######################
 # SoA scaling function
@@ -97,6 +111,9 @@ def scale_latency (latency= 1, nfft_ref = 1, nfft = 1, acc_type ="Memory-b"):
 ######################
 # Architecture exploration
 ######################
+def area_ratio (area_ov, baseline_area):
+    return (area_ov+baseline_area)/baseline_area
+
 nFFT = 4096
 lFFT = int(np.log2(nFFT))
 
