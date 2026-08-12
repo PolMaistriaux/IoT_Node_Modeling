@@ -28,7 +28,7 @@ def asi_function(alpha = 0.5, area_ratio  = 1, power_ratio = 1 ,print=False):
     return (1- (alpha * area_ratio))/( (1 - alpha) * power_ratio)
 
 
-def calc_critical_alphas(area_ratio, power_ratio,energy_ratio, beta):
+def calc_critical_alphas(area_ratio, power_ratio,energy_ratio, beta=1):
 
     alpha_crit_nfw = beta*(1-energy_ratio)/(area_ratio- beta*energy_ratio  -1 + beta )
     alpha_crit_nft = beta*(1-power_ratio) /(area_ratio- beta*power_ratio   -1 + beta )
