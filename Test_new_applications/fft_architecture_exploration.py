@@ -28,10 +28,10 @@ def asi_function(alpha = 0.5, area_ratio  = 1, power_ratio = 1 ,print=False):
     return (1- (alpha * area_ratio))/( (1 - alpha) * power_ratio)
 
 
-def calc_critical_alphas(area_ratio, power_ratio,energy_ratio):
+def calc_critical_alphas(area_ratio, power_ratio,energy_ratio, beta):
 
-    alpha_crit_nfw = (1-energy_ratio)/(area_ratio-energy_ratio)
-    alpha_crit_nft = (1-power_ratio)/(area_ratio-power_ratio)
+    alpha_crit_nfw = beta*(1-energy_ratio)/(area_ratio- beta*energy_ratio  -1 + beta )
+    alpha_crit_nft = beta*(1-power_ratio) /(area_ratio- beta*power_ratio   -1 + beta )
     
     return np.array([alpha_crit_nfw,alpha_crit_nft])
 
@@ -139,6 +139,7 @@ cmult_e      = 16*1e-3
 paraLevel     = np.array([1 , 2 , 4 , 8 ,  16 ])
 pipeLevel     = np.array([1 , 2 , 3 , 4 ,  5 ])
 paraPipeLevel = np.array([1 , 1 , 2 , 3 ,  4 ])
+
 
 arch_Dim = max(len(paraLevel),len(pipeLevel),len(paraPipeLevel))
 
