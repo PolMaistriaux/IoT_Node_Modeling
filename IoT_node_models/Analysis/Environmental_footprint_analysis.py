@@ -28,7 +28,7 @@ path_to_save_svg = "SavedFiles"
 
 ########################################################################################################
 
-def deployment_sweep_fdata  (Replacement_strategy = False,Footprint=None,Node=None,Nyears= 100,rsd = 3,dtrans = 10, nAA = [], param = [], paramType =None, fmax=100, f_step=1, Task = None,transport_model=None,filename=None,figsize=(7,6)):   
+def deployment_sweep_fdata  (Replacement_strategy = False,Footprint=None,Node=None,Nyears= 100,rsd = 3,dtrans = 10, nAA = [], param = [], paramType =None, fmax=100, f_step=1, Task = None,transport_model=None,filename=None,figsize=(7,6), figAppend=None):   
     
     f_initial = Node.get_task_rate(Task)
     battery_footprint = Footprint.battery[0]
@@ -41,7 +41,9 @@ def deployment_sweep_fdata  (Replacement_strategy = False,Footprint=None,Node=No
     result = np.zeros((7,len(fdata),len(nAA),len(param)))
 
     for index, value in enumerate(param):
-        if paramType == "rsd":
+        if paramType == "dnode":
+            d = value
+        elif paramType == "rsd":
             Node.get_Node().get_Battery().set_selfdischarge_p_year(value)
         elif paramType == "dtrans":
             Footprint.set_transport(value,transport_model)
@@ -65,7 +67,12 @@ def deployment_sweep_fdata  (Replacement_strategy = False,Footprint=None,Node=No
     Node.get_Node().get_Battery().set_selfdischarge_p_year(rsd_init)  
     Footprint.battery[0]      = battery_footprint
 
-    fig,ax = plt.subplots(1,1,figsize=figsize)
+
+    if figAppend is None :
+        fig,ax = plt.subplots(1,1,figsize=figsize)
+    else : 
+        fig = figAppend[0]
+        ax  = figAppend[1]
     ax.set_xlabel("Transmission rate [$msg/day$]")
     ax.set_ylabel("GWP [$kgCO_2eq./year$]")
 
@@ -80,36 +87,44 @@ def deployment_sweep_fdata  (Replacement_strategy = False,Footprint=None,Node=No
                 ax.plot(result[0,:,indexAA,index],   result[2,:,indexAA,index],   color=colorListList[indexAA][-(index+1)])
                 ax.plot(result[0,:,indexAA,index],   result[4,:,indexAA,index],   color=colorListList[indexAA][-(index+1)],linestyle = "dashed") 
 
-
-    ax.set_xscale("log")
-    ax.set_yscale("log")
-    #axP.set_yscale("log")
-
-    plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
-    plt.gca().yaxis.set_minor_formatter(mpl.ticker.ScalarFormatter())
-    plt.gca().yaxis.set_minor_formatter(mpl.ticker.NullFormatter())
-
-    ax.set_yticks([0.1,0.3,1,3,10,30])
-
-    ymin = np.min(result[(2,4),:])
-    ymax = np.max(result[(2,4),:])
-    ax.set_ylim( ymin= ymin , ymax =ymax+1 )
-    ax.set_xlim( xmin= 1/1.1 , xmax =fmax)
     
-    ax.vlines(1, ymin, ymax    , linestyle = "dashed", color = "black")
-    ax.vlines(24, ymin, ymax   , linestyle = "dashed", color = "black")
-    ax.vlines(24*12, ymin, ymax, linestyle = "dashed", color = "black")
-    ax.set_title("Fdata : Time period: %d years, Rsd : %.1f %%, Dtrans %u km"%(Nyears,Node.get_Node().get_Battery().get_selfdischarge_p_year(),dtrans))
-    
-    ax.tick_params(axis='x', labelsize = 12)
+    if figAppend is  None :
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        #axP.set_yscale("log")
+
+        plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
+        plt.gca().yaxis.set_minor_formatter(mpl.ticker.ScalarFormatter())
+        plt.gca().yaxis.set_minor_formatter(mpl.ticker.NullFormatter())
+
+        ax.set_yticks([0.1,0.3,1,3,10,30])
+
+        ymin = np.min(result[(2,4),:])
+        ymax = np.max(result[(2,4),:])
+        ax.set_ylim( ymin= ymin , ymax =ymax+1 )
+        ax.set_xlim( xmin= 1/1.1 , xmax =fmax)
+        
+        ax.vlines(1, ymin, ymax    , linestyle = "dashed", color = "black")
+        ax.vlines(24, ymin, ymax   , linestyle = "dashed", color = "black")
+        ax.vlines(24*12, ymin, ymax, linestyle = "dashed", color = "black")
+        ax.set_title("Fdata : Time period: %d years, Rsd : %.1f %%, Dtrans %u km"%(Nyears,Node.get_Node().get_Battery().get_selfdischarge_p_year(),dtrans))
+        
+        ax.tick_params(axis='x', labelsize = 12)
+
+    else:
+        ax.set_ylim( ymin= None , ymax =None )
+        ax.set_xlim( xmin= None , xmax =None)
+
     if(filename != None):
         to_save= filename+".svg"
         plt.savefig(to_save, format="svg")
 
+    return fig, ax
+
 ########################################################################################################
         
 
-def deployment_sweep_ebatt  (Replacement_strategy = False,Footprint=None,Node=None,Nyears= 100,dtrans = 10, param = [], paramType =None,nAAmin = 1, nAAmax=6, nAA_step=1,transport_model=None,filename=None,figsize=(7,6)):   
+def deployment_sweep_ebatt  (Replacement_strategy = False,Footprint=None,Node=None,Nyears= 100,dtrans = 10, param = [], paramType =None,nAAmin = 1, nAAmax=6, nAA_step=1,transport_model=None,filename=None,figsize=(7,6), figAppend=None):   
     
 
     battery_footprint = Footprint.battery[0]
@@ -143,7 +158,11 @@ def deployment_sweep_ebatt  (Replacement_strategy = False,Footprint=None,Node=No
     Node.get_Node().get_Battery().set_selfdischarge_p_year(rsd_init)  
     Footprint.battery[0]      = battery_footprint
 
-    fig,ax = plt.subplots(1,1,figsize=figsize)
+    if figAppend is None :
+        fig,ax = plt.subplots(1,1,figsize=figsize)
+    else : 
+        fig = figAppend[0]
+        ax  = figAppend[1]
     ax.set_xlabel("Battery capacity [$mAh$]")
     ax.set_ylabel("GWP [$kgCO_2eq./year$]")
 
@@ -165,23 +184,30 @@ def deployment_sweep_ebatt  (Replacement_strategy = False,Footprint=None,Node=No
             ax.scatter(result[0,np.argmin(result[4,:,index]),index],np.min(result[4,:,index]),color=colorListList[0][-(index+1)],marker ="s" ) 
 
 
-    ax.set_yscale("log")
+    if figAppend is None :
+        ax.set_yscale("log")
 
-    plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
-    plt.gca().yaxis.set_minor_formatter(mpl.ticker.ScalarFormatter())
-    plt.gca().yaxis.set_minor_formatter(mpl.ticker.NullFormatter())
+        plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
+        plt.gca().yaxis.set_minor_formatter(mpl.ticker.ScalarFormatter())
+        plt.gca().yaxis.set_minor_formatter(mpl.ticker.NullFormatter())
 
-    ax.set_xticks(nAAint*capa_1AA)
-    ax.set_yticks([0.1,0.3,1,3,10,30])
-    ax.tick_params(axis='x', labelsize = 12)
+        ax.set_xticks(nAAint*capa_1AA)
+        ax.set_yticks([0.1,0.3,1,3,10,30])
+        ax.tick_params(axis='x', labelsize = 12)
 
-    ymin = np.min(result[(2,4),:])
-    ymax = np.max(result[(2,4),:])
-    ax.set_ylim( ymin= ymin/1.1  ,ymax =ymax*1.1 )
-    ax.set_xlim( xmin= capa_1AA*nAAmin/1.2,xmax =capa_1AA*nAAmax)
+        ymin = np.min(result[(2,4),:])
+        ymax = np.max(result[(2,4),:])
+        ax.set_ylim( ymin= ymin/1.1  ,ymax =ymax*1.1 )
+        ax.set_xlim( xmin= capa_1AA*nAAmin/1.2,xmax =capa_1AA*nAAmax)
+        
+        ax.set_title("Ebatt : Time period: %d years, dtrans %u m"%(Nyears,dtrans))
     
-    ax.set_title("Ebatt : Time period: %d years, dtrans %u m"%(Nyears,dtrans))
+    else:
+        ax.set_ylim( ymin= None , ymax =None )
+        ax.set_xlim( xmin= None , xmax =None )
 
     if(filename != None):
         to_save= filename+".svg"
         plt.savefig(to_save, format="svg")
+
+    return fig, ax

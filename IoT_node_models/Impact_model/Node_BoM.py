@@ -21,24 +21,24 @@ from MyColors           import *
 
 class Node_BoM:
     def __init__(self,casing=[0,0,0],connectivtiy=[0,0,0],eol=[0,0,0],memory=[0,0,0],others=[0,0,0],pcb=[0,0,0],power_supply=[0,0,0],processing=[0,0,0],sensing=[0,0,0],ui=[0,0,0],transport=[0,0,0],battery=[0,0,0],placement=[0,0,0],replacement=[0,0,0],decom=[0,0,0],placementNnodes=1,replacementNnodes=1,decomNnodes=1):
-        self.casing             = casing
-        self.connectivtiy       = connectivtiy 
-        self.eol                = eol
-        self.memory             = memory
-        self.others             = others 
-        self.pcb                = pcb 
-        self.power_supply       = power_supply 
-        self.processing         = processing 
-        self.sensing            = sensing
-        self.ui                 = ui
-        self.battery            = battery
-        self.placement          = placement
-        self.replacement        = replacement
-        self.decom              = decom
-        self.placementNnodes    = placementNnodes
-        self.replacementNnodes  = replacementNnodes
-        self.decomNnodes        = decomNnodes
-        self.transport          = transport
+        self.casing             = casing                 if (type(casing)            == list) else 3*[casing]           
+        self.connectivtiy       = connectivtiy           if (type(connectivtiy)      == list) else 3*[connectivtiy]                  
+        self.eol                = eol                    if (type(eol)               == list) else 3*[eol]        
+        self.memory             = memory                 if (type(memory)            == list) else 3*[memory]           
+        self.others             = others                 if (type(others)            == list) else 3*[others]            
+        self.pcb                = pcb                    if (type(pcb)               == list) else 3*[pcb]         
+        self.power_supply       = power_supply           if (type(power_supply)      == list) else 3*[power_supply]                  
+        self.processing         = processing             if (type(processing)        == list) else 3*[processing]                
+        self.sensing            = sensing                if (type(sensing)           == list) else 3*[sensing]            
+        self.ui                 = ui                     if (type(ui)                == list) else 3*[ui]       
+        self.battery            = battery                if (type(battery)           == list) else 3*[battery]            
+        self.placement          = placement              if (type(placement)         == list) else 3*[placement]              
+        self.replacement        = replacement            if (type(replacement)       == list) else 3*[replacement]                
+        self.decom              = decom                  if (type(decom)             == list) else 3*[decom]               
+        self.transport          = transport              if (type(transport)         == list) else 3*[transport]        
+        self.placementNnodes    = placementNnodes        
+        self.replacementNnodes  = replacementNnodes      
+        self.decomNnodes        = decomNnodes            
 
         self.recompute()
 
