@@ -20,7 +20,7 @@ from MyColors           import *
 ####################################################
 
 class Node_BoM:
-    def __init__(self,casing=[0,0,0],connectivtiy=[0,0,0],eol=[0,0,0],memory=[0,0,0],others=[0,0,0],pcb=[0,0,0],power_supply=[0,0,0],processing=[0,0,0],sensing=[0,0,0],ui=[0,0,0],transport=[0,0,0],battery=[0,0,0],placement=[0,0,0],replacement=[0,0,0],decom=[0,0,0],placementNnodes=1,replacementNnodes=1,decomNnodes=1):
+    def __init__(self,casing=[0,0,0],connectivtiy=[0,0,0],eol=[0,0,0],memory=[0,0,0],others=[0,0,0],pcb=[0,0,0],power_supply=[0,0,0],processing=[0,0,0],sensing=[0,0,0],ui=[0,0,0],transport=[0,0,0],battery=[0,0,0],transport_model=None):
         self.casing             = casing                 if (type(casing)            == list) else 3*[casing]           
         self.connectivtiy       = connectivtiy           if (type(connectivtiy)      == list) else 3*[connectivtiy]                  
         self.eol                = eol                    if (type(eol)               == list) else 3*[eol]        
@@ -32,21 +32,28 @@ class Node_BoM:
         self.sensing            = sensing                if (type(sensing)           == list) else 3*[sensing]            
         self.ui                 = ui                     if (type(ui)                == list) else 3*[ui]       
         self.battery            = battery                if (type(battery)           == list) else 3*[battery]            
-        self.placement          = placement              if (type(placement)         == list) else 3*[placement]              
-        self.replacement        = replacement            if (type(replacement)       == list) else 3*[replacement]                
-        self.decom              = decom                  if (type(decom)             == list) else 3*[decom]               
-        self.transport          = transport              if (type(transport)         == list) else 3*[transport]        
-        self.placementNnodes    = placementNnodes        
-        self.replacementNnodes  = replacementNnodes      
-        self.decomNnodes        = decomNnodes            
-
+        self.placement          = 0 
+        self.replacement        = 0 
+        self.decom              = 0 
+        self.transport_model    = transport_model
         self.recompute()
 
-    def set_transport(self,km,transport_model):
-        transport_foot = transport_model(km)
-        self.placement[0]    = transport_foot/self.placementNnodes
-        self.replacement[0]  = transport_foot/self.replacementNnodes
-        self.decom[0]        = transport_foot/self.decomNnodes
+    def set_transport_model(self,transport_model):
+        self.transport_model= transport_model
+
+
+    def calculate_transport(self,km_fixed,km_p_node,n_node):
+        transport_foot = self.transport_model(km_fixed,km_p_node,n_node)
+        if len(transport_foot) == 3:
+            self.placement    = transport_foot[0]
+            self.replacement  = transport_foot[1]
+            self.decom        = transport_foot[2]
+        else : 
+            
+            self.placement    = transport_foot
+            self.replacement  = transport_foot
+            self.decom        = transport_foot
+
 
 
     def recompute(self):
@@ -62,11 +69,12 @@ class Node_BoM:
     def plot_footprint(self,filename = None,figsize=(7,6), separatePlot=False):
         self.recompute()
         barWidth = 0.6
-        height      = np.array([self.casing[0],self.connectivtiy[0], self.eol[0],self.memory[0],self.others[0],self.pcb[0],self.power_supply[0],self.processing[0],self.sensing[0],self.ui[0],self.transport[0],self.battery[0],self.F_node[0]])
-        height_e_up = np.array([self.casing[2],self.connectivtiy[2], self.eol[2],self.memory[2],self.others[2],self.pcb[2],self.power_supply[2],self.processing[2],self.sensing[2],self.ui[2],self.transport[0],self.battery[2],self.F_node[0]])
-        height_e_do = np.array([self.casing[1],self.connectivtiy[1], self.eol[1],self.memory[1],self.others[1],self.pcb[1],self.power_supply[1],self.processing[1],self.sensing[1],self.ui[1],self.transport[0],self.battery[1],self.F_node[0]])
+        transport   =  self.placement + self.decom
+        height      = np.array([self.casing[0],self.connectivtiy[0], self.eol[0],self.memory[0],self.others[0],self.pcb[0],self.power_supply[0],self.processing[0],self.sensing[0],self.ui[0],transport        ,self.battery[0],self.F_node[0]])
+        height_e_up = np.array([self.casing[2],self.connectivtiy[2], self.eol[2],self.memory[2],self.others[2],self.pcb[2],self.power_supply[2],self.processing[2],self.sensing[2],self.ui[2],transport        ,self.battery[2],self.F_node[2]])
+        height_e_do = np.array([self.casing[1],self.connectivtiy[1], self.eol[1],self.memory[1],self.others[1],self.pcb[1],self.power_supply[1],self.processing[1],self.sensing[1],self.ui[1],transport        ,self.battery[1],self.F_node[1]])
         height_n    = np.array([0             ,0                   , 0          ,0             ,0             ,0          ,0                   ,0                 ,0              ,0         ,0                ,0              ,self.battery[0]])
-        xlabel      = np.array(["Casing","Connectivity","EoL" ,"Memory","Others","PCB" ,"PMU" ,"Processing","Sensing","User Interface"  ,"Transport", "Battery module", "Total"])
+        xlabel      = np.array(["Casing","Connectivity","EoL" ,"Memory","Others","PCB" ,"PMU" ,"Processing","Sensing","User Interface"  ,"Transport (Pl. & Decom.)", "Battery module", "Total"])
         color       = np.array([dictColor["CarolinaBlue"]  ,dictColor["CarolinaBlue"]        ,dictColor["CarolinaBlue"],dictColor["CarolinaBlue"]  ,dictColor["CarolinaBlue"]  ,dictColor["CarolinaBlue"],dictColor["CarolinaBlue"],dictColor["CarolinaBlue"]      ,dictColor["CarolinaBlue"]   ,dictColor["CarolinaBlue"],dictColor["Green"]    , dictColor["Sandy"] , dictColor["CarolinaBlue"] ])         
         toRemove    = [i for i in np.arange(len(height)) if height[i]==0]
         for index in toRemove[::-1]:
@@ -77,7 +85,7 @@ class Node_BoM:
             color       = np.delete(color,          index)
             xlabel      = np.delete(xlabel,         index)
 
-        index       = np.argsort(height)
+        index       = np.append(np.argsort([height[:-1]]),len(height)-1)
         height      = height[index]
         height_e_up = height_e_up[index]
         height_e_do = height_e_do[index]

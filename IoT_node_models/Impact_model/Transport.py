@@ -6,23 +6,17 @@ import numpy as np
 
 
 ####################################################
-def transport_footprint(km_one_way = 10, type ="Unit", weight_g = 500, footprint_p_tkm = 0.545,unit_factor = 1,footprint_p_km = 0.350,km_fixed=5):
-    km = 2* km_one_way
+def transport_footprint(km_p_node = 10,km_fixed=5, type ="Unit", n_node = 1,footprint_p_km = 0.350):
     if(type == "Unit"):
-        return (km_fixed+km*unit_factor)* footprint_p_km
-    elif type =="Per_tkm":
-        return km*footprint_p_tkm*weight_g/10e6
+        return (km_p_node+km_fixed/n_node)* footprint_p_km
     else: 
         print("Error in type specification for transport footprint calculation")
 ####################################################
-def transport_cost(worker = 1, salary_p_hour = 20, work_hour =1, km_p_h = 50,km_one_way = 10, type ="Unit", weight_g = 500, cost_p_tkm = 0.545,unit_factor = 1,cost_p_km = 6*2):
-    km = 2* km_one_way
-    transp_hour = km /km_p_h
-    fixed_cost = worker*salary_p_hour * (work_hour + transp_hour)
+def transport_cost(km_fixed=5,worker = 1, salary_p_hour = 20, work_hour_p_node =1, km_p_h = 50, type ="Unit",n_node = 1,cost_p_km = 6*2):
+    transp_hour_fixed = km_fixed /km_p_h
     if(type == "Unit"):
-        return fixed_cost + cost_p_km*km*unit_factor
-    elif type =="Per_tkm":
-        return fixed_cost + km*cost_p_tkm*weight_g/10e6
+        fixed_cost = worker*salary_p_hour * (work_hour_p_node + transp_hour_fixed/n_node)
+        return fixed_cost  + cost_p_km*km_fixed/n_node
     else: 
         print("Error in type specification for transport footprint calculation")
 
@@ -30,14 +24,16 @@ def transport_cost(worker = 1, salary_p_hour = 20, work_hour =1, km_p_h = 50,km_
 
 
 ####################################################
-def F_trans(km):
-    return transport_footprint(km_one_way = km, type ="Unit", 
-                            weight_g = 500,  footprint_p_tkm = 0.545,
-                            unit_factor = 1,footprint_p_km = 0.350,km_fixed = 5)
+def F_trans(km_fixed=1,km_p_node=1,n_node=1 ):
+    return transport_footprint(km_p_node = km_p_node, km_fixed=km_fixed, type ="Unit", 
+                            n_node = n_node,footprint_p_km = 0.350)
 
 ####################################################
 def C_trans(km):
-    return transport_cost(  worker = 1, salary_p_hour = 5, work_hour =10/60, km_p_h = 50,km_one_way = km, 
+    return transport_cost(  worker = 1, 
+                            salary_p_hour = 5, 
+                            work_hour_p_node =10/60, 
+                            km_p_h = 50,
+                            km_fixed = km, 
                             type ="Unit", 
-                            weight_g = 500, cost_p_tkm =  0.2/1e3,
-                            unit_factor = 1,cost_p_km = 0.2)
+                            n_node = 1,cost_p_km = 0.2)
