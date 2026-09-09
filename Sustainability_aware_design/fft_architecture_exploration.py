@@ -122,26 +122,38 @@ baseline_energy  = 4096* 5.85e-9
 baseline_latency = 4096* 80
 baseline_power   = baseline_energy / baseline_latency
 
-sp_mem_size  = np.array([4096   ,   2048  ,  1024   , 512    ,  256     ,  128   ] )                 
-sp_mem_area  = np.array([0.0945 ,   0.0563,  0.0327 , 0.0202 ,  0.0152  ,  0.0098] )                 
-sp_mem_e     = np.array([20.366 ,   14.951,  11.484 , 10.045 ,  4.04    ,  3.814 ] ) *1.2 * 1e-3                 
+################ WITH RF ##################
+#sp_mem_size  = np.array([4096   ,   2048  ,  1024   , 512    ,  256     ,  128    ,  128   /2] )                 
+#sp_mem_area  = np.array([0.0945 ,   0.0563,  0.0327 , 0.0202 ,  0.0152  ,  0.0098 ,  0.0098] )                 
+#sp_mem_e     = np.array([20.366 ,   14.951,  11.484 , 10.045 ,  4.04    ,  3.814  ,  3.814 ] ) *1.2 * 1e-3    
+#
+#dp_mem_size  = np.array([4096   ,   2048  ,  1024   , 512    ,  256    ,  128   , 128/2    ] )                 
+#dp_mem_area  = np.array([0.1984 ,   0.1040,  0.0567 , 0.0371 ,  0.0159 ,  0.0111, 0.0111 ] )                 
+#dp_mem_e     = np.array([19.65  ,   16.105,  14.325 , 12.23  ,  5.047  ,  4.365 , 4.365  ] ) *1.2 * 1e-3      
 
+################ WITHOUT RF ##################
+sp_mem_size  = np.array([4096   ,   2048  ,  1024   , 512    ,  256     ,  128    ] )                 
+sp_mem_area  = np.array([0.0945 ,   0.0563,  0.0327 , 0.0202 ,  0.0147  ,  0.0119 ] )                 
+sp_mem_e     = np.array([20.366 ,   14.951,  11.484 , 10.045 ,  9.127   ,  8.876  ] ) *1.2 * 1e-3      
 
-dp_mem_size  = np.array([4096   ,   2048  ,  1024   , 512    ,  256    ,  128    ] )                 
-dp_mem_area  = np.array([0.1984 ,   0.1040,  0.0567 , 0.0371 ,  0.0159 ,  0.0111 ] )                 
-dp_mem_e     = np.array([19.65  ,   16.105,  14.325 , 12.23  ,  5.047  ,  4.365  ] ) *1.2 * 1e-3             
+dp_mem_size  = np.array([4096   ,   2048  ,  1024   , 512    ,  256    ,  128   ] )                 
+dp_mem_area  = np.array([0.1984 ,   0.1040,  0.0567 , 0.0371 ,  0.0257 ,  0.0207] )                 
+dp_mem_e     = np.array([19.65  ,   16.105,  14.325 , 12.23  ,  11.02  ,  10.416 ] ) *1.2 * 1e-3  
+       
 
-half_bf_area = 0.012258/2
+half_bf_area = (10435 + 1400) * 1e-6 /2
 cmult_e      = 16*1e-3  
 
 
 
-paraLevel     = np.array([1 , 2 , 4 , 8 ,  16 ])
-pipeLevel     = np.array([1 , 2 , 3 , 4 ,  5 ])
-paraPipeLevel = np.array([1 , 1 , 2 , 3 ,  4 ])
+pipeLevel     = np.array([1 , 2 , 3 , 4 , np.nan])
+paraLevel     = np.array([1 , 2 , 4 , 8 , 16    ])
+paraPipeLevel = np.array([1 , 1 , 2 , 3 , 4     ])
+
+arch_Dim_array = np.array([4,5,5])
+arch_Dim = max(len(pipeLevel),len(paraLevel),len(paraPipeLevel))
 
 
-arch_Dim = max(len(paraLevel),len(pipeLevel),len(paraPipeLevel))
 
 Mem_type = 4
 
@@ -154,32 +166,58 @@ if (len(paraLevel) != len(pipeLevel)) or (len(paraLevel) != len(paraPipeLevel)):
 
 #Based on parallelism level
 para_theor_Area     = np.zeros((len(paraLevel),Mem_type))
+para_theor_Area_Mem = np.zeros((len(paraLevel),Mem_type))
+para_theor_Area_BF  = np.zeros((len(paraLevel),Mem_type))
 para_theor_Latency  = np.zeros((len(paraLevel),Mem_type))
 para_theor_Energy   = np.zeros((len(paraLevel),Mem_type))
+para_theor_Energy_Mem   = np.zeros((len(paraLevel),Mem_type))
+para_theor_Energy_BF    = np.zeros((len(paraLevel),Mem_type))
 for i, paraLv in enumerate(paraLevel):
-    para_theor_Area    [i] = np.array([(sp_mem_area[i]  +half_bf_area)*paraLv      , (sp_mem_area[i]*2+half_bf_area)*paraLv  , (2*sp_mem_area[i+1]  +half_bf_area)*paraLv       , (dp_mem_area[i]  +half_bf_area)*paraLv        ]   )
-    para_theor_Latency [i] = np.array([ nFFT*lFFT*2/paraLv                         ,  nFFT*lFFT/paraLv                       ,  nFFT*lFFT/paraLv                                ,  nFFT*lFFT/paraLv                               ]   )
-    para_theor_Energy  [i] = np.array([(cmult_e/2+sp_mem_e[i]*2)*nFFT*lFFT         , (cmult_e/2+sp_mem_e[i]*2)*nFFT*lFFT     , (cmult_e/2+sp_mem_e[i+1]*2)*nFFT*lFFT            , (cmult_e/2+dp_mem_e[i]*2)*nFFT*lFFT             ]   )*1e-9 
+    para_theor_Area       [i] = np.array([(sp_mem_area[i]  +half_bf_area)*paraLv      , (sp_mem_area[i]*2+half_bf_area)*paraLv  , (2*sp_mem_area[i+1]  +half_bf_area)*paraLv       , (dp_mem_area[i]  +half_bf_area)*paraLv         ]   )
+    para_theor_Area_Mem   [i] = np.array([(sp_mem_area[i])*paraLv                     , (sp_mem_area[i]*2)*paraLv               , (2*sp_mem_area[i+1])*paraLv                      , (dp_mem_area[i])*paraLv                        ]   )
+    para_theor_Area_BF    [i] = np.array([(half_bf_area)*paraLv                       ,(half_bf_area)*paraLv                    ,(half_bf_area)*paraLv                             , ( half_bf_area)*paraLv                          ]   )
+    para_theor_Latency    [i] = np.array([ nFFT*lFFT*2/paraLv                         ,  nFFT*lFFT/paraLv                       ,  nFFT*lFFT/paraLv                                ,  nFFT*lFFT/paraLv                               ]   )
+    para_theor_Energy_Mem [i] = np.array([(sp_mem_e[i]*2)*nFFT*lFFT                   , (sp_mem_e[i]*2)*nFFT*lFFT               , (sp_mem_e[i+1]*2)*nFFT*lFFT                      , (dp_mem_e[i]*2)*nFFT*lFFT                       ]   )*1e-9 
+    para_theor_Energy_BF  [i] = np.array([(cmult_e/2)*nFFT*lFFT                       , (cmult_e/2)*nFFT*lFFT                   , (cmult_e/2*2)*nFFT*lFFT                          , (cmult_e/2)*nFFT*lFFT                           ]   )*1e-9   
+    para_theor_Energy     [i] = np.array([(cmult_e/2+sp_mem_e[i]*2)*nFFT*lFFT         , (cmult_e/2+sp_mem_e[i]*2)*nFFT*lFFT     , (cmult_e/2+sp_mem_e[i+1]*2)*nFFT*lFFT            , (cmult_e/2+dp_mem_e[i]*2)*nFFT*lFFT             ]   )*1e-9 
+        
     
 
 #Based on pipeline level
 pipe_theor_Area     = np.zeros((len(pipeLevel),Mem_type))
+pipe_theor_Area_Mem = np.zeros((len(pipeLevel),Mem_type))
+pipe_theor_Area_BF  = np.zeros((len(pipeLevel),Mem_type))
 pipe_theor_Latency  = np.zeros((len(pipeLevel),Mem_type))
 pipe_theor_Energy   = np.zeros((len(pipeLevel),Mem_type))
+pipe_theor_Energy_Mem   = np.zeros((len(pipeLevel),Mem_type))
+pipe_theor_Energy_BF    = np.zeros((len(pipeLevel),Mem_type))
 for i, pipeLv in enumerate(pipeLevel):
-    pipe_theor_Area    [i,:] = np.array([sp_mem_area[0] + (half_bf_area*pipeLv)          , sp_mem_area[0]*2 + (half_bf_area*pipeLv)        ,   (2*sp_mem_area[1]) + (half_bf_area*pipeLv)         ,  dp_mem_area[0] + (half_bf_area*pipeLv)      ] )    
-    pipe_theor_Latency [i,:] = np.array([ nFFT*lFFT*2/pipeLv                             ,  nFFT*lFFT/pipeLv                               ,    nFFT*lFFT/pipeLv                                  ,  nFFT*lFFT/pipeLv                              ] )              
-    pipe_theor_Energy  [i,:] = np.array([ nFFT*lFFT*(cmult_e/2 +(sp_mem_e[0]*2/pipeLv))  , nFFT*lFFT*(cmult_e/2 +(sp_mem_e[0]*2/pipeLv))   ,    nFFT*lFFT*(cmult_e/2 +(sp_mem_e[1]*2/pipeLv))     , nFFT*lFFT*(cmult_e/2 +(dp_mem_e[0]*2/pipeLv))  ] )  *1e-9           
+    pipe_theor_Area        [i,:] = np.array([sp_mem_area[0] + (half_bf_area*pipeLv)          , sp_mem_area[0]*2 + (half_bf_area*pipeLv)        ,   (2*sp_mem_area[1]) + (half_bf_area*pipeLv)         ,  dp_mem_area[0] + (half_bf_area*pipeLv)      ] )    
+    pipe_theor_Area_Mem    [i,:] = np.array([sp_mem_area[0]                                  , sp_mem_area[0]*2                                ,   (2*sp_mem_area[1])                                 ,  dp_mem_area[0]                              ] )    
+    pipe_theor_Area_BF     [i,:] = np.array([(half_bf_area*pipeLv)                           ,(half_bf_area*pipeLv)                            ,    (half_bf_area*pipeLv)                             ,  (half_bf_area*pipeLv)                       ] )    
+    pipe_theor_Latency     [i,:] = np.array([ nFFT*np.ceil(lFFT/pipeLv)*2                    ,  nFFT*np.ceil(lFFT/pipeLv)                      ,    nFFT*np.ceil(lFFT/pipeLv)                         ,  nFFT*np.ceil(lFFT/pipeLv)                   ] )              
+    pipe_theor_Energy_Mem  [i,:] = np.array([ nFFT*lFFT*((sp_mem_e[0]*2/pipeLv))             , nFFT*lFFT*((sp_mem_e[0]*2/pipeLv))              ,    nFFT*lFFT*((sp_mem_e[1]*2/pipeLv))                , nFFT*lFFT*((dp_mem_e[0]*2/pipeLv))             ] )  *1e-9           
+    pipe_theor_Energy_BF   [i,:] = np.array([ nFFT*lFFT*(cmult_e/2)                          , nFFT*lFFT*(cmult_e/2)                           ,    nFFT*lFFT*(cmult_e/2)                             , nFFT*lFFT*(cmult_e/2)                          ] )  *1e-9           
+    pipe_theor_Energy      [i,:] = np.array([ nFFT*lFFT*(cmult_e/2 +(sp_mem_e[0]*2/pipeLv))  , nFFT*lFFT*(cmult_e/2 +(sp_mem_e[0]*2/pipeLv))   ,    nFFT*lFFT*(cmult_e/2 +(sp_mem_e[1]*2/pipeLv))     , nFFT*lFFT*(cmult_e/2 +(dp_mem_e[0]*2/pipeLv))  ] )  *1e-9           
+        
     
 
 #Based on pipeline level
 pipePara_theor_Area     = np.zeros((len(paraPipeLevel),Mem_type))
+pipePara_theor_Area_Mem = np.zeros((len(paraPipeLevel),Mem_type))
+pipePara_theor_Area_BF  = np.zeros((len(paraPipeLevel),Mem_type))
 pipePara_theor_Latency  = np.zeros((len(paraPipeLevel),Mem_type))
 pipePara_theor_Energy   = np.zeros((len(paraPipeLevel),Mem_type))
+pipePara_theor_Energy_Mem   = np.zeros((len(paraPipeLevel),Mem_type))
+pipePara_theor_Energy_BF    = np.zeros((len(paraPipeLevel),Mem_type))
 for i, ppLv in enumerate(paraPipeLevel):
-    pipePara_theor_Area    [i] = np.array([(sp_mem_area[i]  +half_bf_area*ppLv)*paraLevel[i]      , (sp_mem_area[i]*2  +half_bf_area*ppLv)*paraLevel[i]   , (2*sp_mem_area[i+1]  +half_bf_area*ppLv)*paraLevel[i]   ,  (dp_mem_area[i]  +half_bf_area*ppLv)*paraLevel[i]   ]  )   
-    pipePara_theor_Latency [i] = np.array([ (nFFT/paraLevel[i])*(lFFT/ppLv)*2                     , (nFFT/paraLevel[i])*(lFFT/ppLv)                       ,  (nFFT/paraLevel[i])*(lFFT/ppLv)                        ,  (nFFT/paraLevel[i])*(lFFT/ppLv)                       ]  )            
-    pipePara_theor_Energy  [i] = np.array([ nFFT*lFFT*(cmult_e/2 +(sp_mem_e[i]*2/ppLv))           , nFFT*lFFT*(cmult_e/2 +(sp_mem_e[i]*2/ppLv))           ,  nFFT*lFFT*(cmult_e/2 +(sp_mem_e[i+1]*2/ppLv))          , nFFT*lFFT*(cmult_e/2 +(dp_mem_e[i]*2/ppLv))            ]  )    *1e-9      
-   
+    pipePara_theor_Area        [i] = np.array([(sp_mem_area[i]  +half_bf_area*ppLv)*paraLevel[i]      , (sp_mem_area[i]*2  +half_bf_area*ppLv)*paraLevel[i]   , (2*sp_mem_area[i+1]  +half_bf_area*ppLv)*paraLevel[i]   ,  (dp_mem_area[i]  +half_bf_area*ppLv)*paraLevel[i]   ]  )   
+    pipePara_theor_Area_Mem    [i] = np.array([(sp_mem_area[i])*paraLevel[i]                          , (sp_mem_area[i]*2)*paraLevel[i]                       , (2*sp_mem_area[i+1])*paraLevel[i]                       ,  (dp_mem_area[i])*paraLevel[i]                       ]  )   
+    pipePara_theor_Area_BF     [i] = np.array([(half_bf_area*ppLv)*paraLevel[i]                       , (half_bf_area*ppLv)*paraLevel[i]                      , (half_bf_area*ppLv)*paraLevel[i]                        ,  (half_bf_area*ppLv)*paraLevel[i]                    ]  )   
+    pipePara_theor_Latency     [i] = np.array([ (nFFT/paraLevel[i])*np.ceil(lFFT/ppLv)*2              , (nFFT/paraLevel[i])*np.ceil(lFFT/ppLv)                ,  (nFFT/paraLevel[i])*np.ceil(lFFT/ppLv)                 ,  (nFFT/paraLevel[i])*np.ceil(lFFT/ppLv)            ]  )            
+    pipePara_theor_Energy_Mem  [i] = np.array([ nFFT*lFFT*(sp_mem_e[i]*2/ppLv)                        , nFFT*lFFT*(sp_mem_e[i]*2/ppLv)                        ,  nFFT*lFFT*(sp_mem_e[i+1]*2/ppLv)                       , nFFT*lFFT*(dp_mem_e[i]*2/ppLv)                         ]  )    *1e-9      
+    pipePara_theor_Energy_BF   [i] = np.array([ nFFT*lFFT*(cmult_e/2)                                 , nFFT*lFFT*(cmult_e/2)                                 ,  nFFT*lFFT*(cmult_e/2)                                  , nFFT*lFFT*(cmult_e/2)                                  ]  )    *1e-9      
+    pipePara_theor_Energy      [i] = np.array([ nFFT*lFFT*(cmult_e/2 +(sp_mem_e[i]*2/ppLv))           , nFFT*lFFT*(cmult_e/2 +(sp_mem_e[i]*2/ppLv))           ,  nFFT*lFFT*(cmult_e/2 +(sp_mem_e[i+1]*2/ppLv))          , nFFT*lFFT*(cmult_e/2 +(dp_mem_e[i]*2/ppLv))            ]  )    *1e-9      
+           
 
 
