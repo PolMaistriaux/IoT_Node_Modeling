@@ -20,8 +20,8 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from IoT_node_models.Energy_model import *
-from IoT_node_models.Hardware_Modules import *
+from IoT_node_models.Node_description import *
+from IoT_node_models.Component_set import *
 from IoT_node_models.Impact_model import *
 
 path_to_save_svg = "SavedFiles"
@@ -79,7 +79,7 @@ class Node_BoM:
         height_e_up = np.array([self.casing[2],self.connectivtiy[2], self.eol[2],self.memory[2],self.others[2],self.pcb[2],self.power_supply[2],self.processing[2],self.sensing[2],self.ui[2],self.transport[0],self.battery[2],self.F_node[0]])
         height_e_do = np.array([self.casing[1],self.connectivtiy[1], self.eol[1],self.memory[1],self.others[1],self.pcb[1],self.power_supply[1],self.processing[1],self.sensing[1],self.ui[1],self.transport[0],self.battery[1],self.F_node[0]])
         height_n    = np.array([0             ,0                   , 0          ,0             ,0             ,0          ,0                   ,0                 ,0              ,0         ,0                ,0              ,self.battery[0]])
-        xlabel      = np.array(["Casing","Connectivity","EoL" ,"Memory","Others","PCB" ,"PMU" ,"Processing","Sensing","User Interface"  ,"Transport", "Battery module", "Total"])
+        xlabel      = np.array(["Casing","Connectivity","EoL" ,"Memory","Others","PCB" ,"PMU" ,"Processing","Sensing","User Interface"  ,"Transport", "Battery component", "Total"])
         color       = np.array([dictColor["CarolinaBlue"]  ,dictColor["CarolinaBlue"]        ,dictColor["CarolinaBlue"],dictColor["CarolinaBlue"]  ,dictColor["CarolinaBlue"]  ,dictColor["CarolinaBlue"],dictColor["CarolinaBlue"],dictColor["CarolinaBlue"]      ,dictColor["CarolinaBlue"]   ,dictColor["CarolinaBlue"],dictColor["Green"]    , dictColor["Sandy"] , dictColor["CarolinaBlue"] ])         
         toRemove    = [i for i in np.arange(len(height)) if height[i]==0]
         for index in toRemove[::-1]:
@@ -1081,12 +1081,12 @@ node_Cost   = Node_BoM(     casing            =[10    ,    0 , 0], #ABS , IP rat
 # %%
 if __name__ == '__main__':
     
-    node_LDO = LDO(name = "Node LDO", v_out = 3.3, i_q = 1e-3, v_in = 4.5, module_list = module_List_3V3)
+    node_LDO = LDO(name = "Node LDO", v_out = 3.3, i_q = 1e-3, v_in = 4.5, component_list = component_List_3V3)
     node_Batt= Battery(name = "Node Battery", v = 4.5, capacity_mAh = 2800, i = 0, selfdischarge_p_year = 5)
 
-    node = LoRa_Node(module_list = module_List_3V3,  PMU_composition =[node_LDO], Battery = node_Batt, 
-                    MCU_module   = apollo_module_3V3, MCU_active_state = apollo_state_active_3V3,
-                    radio_module = radio_module_3V3,  radio_state_TX=radio_state_TX_3V3, radio_state_RX= radio_state_RX_3V3, Ptx = 2)
+    node = LoRa_Node(component_list = component_List_3V3,  PMU_composition =[node_LDO], Battery = node_Batt, 
+                    MCU_component   = apollo_component_3V3, MCU_active_state = apollo_state_active_3V3,
+                    radio_component = radio_component_3V3,  radio_state_TX=radio_state_TX_3V3, radio_state_RX= radio_state_RX_3V3, Ptx = 2)
 
     PTX_config = PTX_PABOOST_3V3
     ITX_config = I_PABoost_3V3

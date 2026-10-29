@@ -3,9 +3,9 @@ import numpy as np
 from matplotlib import patches as mpatches
 
 
-from Energy_model.Node_module import *
-from Energy_model.Node_task   import *
-from Energy_model.Node        import *
+from Node_description.Component import *
+from Node_description.Task   import *
+from Node_description.Node        import *
 
 
 import sys
@@ -26,12 +26,12 @@ from MyColors           import *
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Given node profile described by:
-#   -The list of module used
+#   -The list of component used
 #   -The list of tasks performed
 # Additional variables used:
 #   -energy_day    : energy consumed over the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-class Node_profile:
+class Profile:
     def __init__(self,name = "None",node = None, time_window=(24*60*60)): # constructor
         self.name = name
         self.node = node
@@ -41,12 +41,14 @@ class Node_profile:
         self.energy        = 0
         self.average_power = 0
         self.lifetime      = 0
-        self.sleep_task = Node_task(name = "Sleep",node_modules = node.get_module_list())
+        self.sleep_energy  = 0
+        self.sleep_task = Sleep_Task(components = node.get_component_list())
         self.task_list.append(self.sleep_task)
         self.task_rate_list.append(1)
 
-    def reset_node_profile(self):
+    def reset_Profile(self):
         self.energy        = 0
+        self.sleep_energy  = 0
         self.average_power = 0
         self.lifetime      = 0
         self.node.reset_Node()
@@ -61,59 +63,47 @@ class Node_profile:
         self.task_rate_list = taskRates
         self.task_list.append(self.sleep_task)
         self.task_rate_list.append(1)
-        self.reset_node_profile()
+        self.reset_Profile()
 
-    def get_task_rate(self,node_task):
+    def get_task_rate(self,task):
         try:
-            index_task = self.task_list.index(node_task)
+            index_task = self.task_list.index(task)
             return self.task_rate_list[index_task]
         except ValueError:
             raise Exception("Error: task for which task rate must be found  is not part of the node tasks")
 
-    def change_task_rate(self,node_task,task_rate):
+    def change_task_rate(self,task,task_rate):
         try:
-            index_task = self.task_list.index(node_task)
+            index_task = self.task_list.index(task)
             self.task_rate_list[index_task] =task_rate
         except ValueError:
             raise Exception("Error: task for which task rate must be updated is not part of the node tasks")
         
 
 
-    def add_task(self, node_task,task_rate):
-        if isinstance(node_task,Node_task):
+    def add_task(self, task,task_rate):
+        if isinstance(task,Task):
             for x in self.task_list:
-                if x.name == node_task.get_name():
+                if x.name == task.get_name():
                     raise Exception("Error : Trying to add a task that is already part of the tasks list") 
-            node_task.node_modules = self.node.get_module_list()
-            self.task_list.append(node_task)
+            task.components = self.node.get_component_list()
+            self.task_list.append(task)
             self.task_rate_list.append(task_rate)
         else:
-            raise TypeError("Error : a variable type different than Node_task was provided to add_task")
+            raise TypeError("Error : a variable type different than task was provided to add_task")
 
 
-    def remove_task(self, node_task):
-        if isinstance(node_task,Node_task):
+    def remove_task(self, task):
+        if isinstance(task,Task):
             try:
-                self.task_list.remove(node_task)
-                self.reset_node_profile()
+                self.task_list.remove(task)
+                self.reset_Profile()
             except:
                 raise Exception("Error : Trying to remove a task from the node that it does not perform") 
         else:
-            raise TypeError("Error : a variable type different than Node_task was provided to add_task")
+            raise TypeError("Error : a variable type different than task was provided to add_task")
 
 
-    #def set_moduleList(self,moduleList):
-    #    self.module_list      = moduleList
-    #    self.reset_node_profile()
-#
-#
-    #def add_module(self, module):
-    #    if isinstance(module,Node_module):
-    #        self.module_list.append(module)
-    #        self.reset_node_profile()
-    #    else:
-    #        raise TypeError("Error : a variable type different than Node_module was provided to add_module")
-        
     def compute_energy_day(self):
         self.time_window = 24*60*60
         self.compute()
@@ -124,7 +114,7 @@ class Node_profile:
         ####################################
         # 1 ) Reset the different variables
         ####################################
-        self.reset_node_profile()
+        self.reset_Profile()
         #################################################################################
         # 2 ) For each task, compute the energy consumes to perform it over a single day
         #################################################################################
@@ -136,34 +126,31 @@ class Node_profile:
                 #Compute the time spent in standby/default/sleep mode
                 time = time - (task.get_taskDuration()*self.task_rate_list[task_index])
 
-                # Update the time spent in the different state for each module
-                for subtask in task.subtasks:
-                    (subtask.get_moduleState()).add_active_time(subtask.stateDuration,self.task_rate_list[task_index], paramVI = subtask.get_paramVI() )
+                # Update the time spent in the different state for each component
+                for action in task.actions:
+                    (action.get_componentState()).add_active_time(action.stateDuration,self.task_rate_list[task_index], paramVI = action.get_paramVI() )
 
         if time <0:
             raise Exception("Error : With task registered, the node is busy for more than a day") 
             return
 
-        #We now know the time spent in sleep mode and can update the different modules accumulated energy accordingly
-
+        #We now know the time spent in sleep mode and can update the different components accumulated energy accordingly
         #################################################################################
-        # 3 ) For each module, compute the energy it consumes over a single day
+        # 3 ) For each component, compute the energy it consumes over a single day
         #################################################################################
         self.node.compute(self.time_window)
 
         #################################################################################
         # 4 ) Update the information regarding the sleep task and compute the total
         #################################################################################
-        #Update the information regarding the sleep task
-        self.sleep_task.set_taskDuration( time )
-        sleep_energy = self.sleep_task.compute_energy_task()
-        
+        self.sleep_energy = self.sleep_task.compute_energy_task()
         #Compute the final total
-        self.energy = self.energy + sleep_energy
+        self.energy = self.energy + self.sleep_energy
+        
         if (100*(self.node.get_energy() - self.energy)/self.energy) > 0.00001 :
             print(self.node.get_energy())
             print(self.energy)
-            raise Exception("Result of energy calculation on Node modules and Tasks differ")
+            raise Exception("Result of energy calculation on Node components and tasks differ")
         
         self.average_power= self.energy/(self.time_window)
         self.lifetime = self.node.get_lifetime()
@@ -175,7 +162,7 @@ class Node_profile:
             return self.node
 
 
-    def plot_Power(self,save=False,filename="test", plotSubtask = False):
+    def plot_power(self,save=False,filename="test", plotSubtask = False):
         fig, ax = plt.subplots(2,1,figsize =(6, 10))
 
         task_energy = []
@@ -190,11 +177,11 @@ class Node_profile:
             for task_index,task in enumerate(self.task_list) :
                 if (task.get_energy_task()* self.task_rate_list[task_index] != 0) :
                     patches_list.append( mpatches.Patch(color=colors[i], label=task.get_name()))
-                    for subtask_index, subtask in enumerate (task.subtasks) :
-                        task_energy.append(subtask.get_energy() * self.task_rate_list[task_index])
-                        task_label.append(subtask.get_name())
+                    for action_index, action in enumerate (task.actions) :
+                        task_energy.append(action.get_energy() * self.task_rate_list[task_index])
+                        task_label.append(action.get_name())
                         colors_task.append(colors[i]) 
-                        patches_list.append( mpatches.Patch(color='white', label=subtask.get_name()))
+                        patches_list.append( mpatches.Patch(color='white', label=action.get_name()))
                         
                         j=j+1
                     i=i+1
@@ -211,7 +198,7 @@ class Node_profile:
                                             startangle=0,   colors= colors_task, 
                                             wedgeprops={'linewidth': 1.0, 'edgecolor': 'white'},
                                         textprops={'size': 'x-large'},normalize=True)
-        ax[0].set_title("Tasks energy repartition",fontsize = 15)
+        ax[0].set_title("tasks energy repartition",fontsize = 15)
         for i, patch in enumerate(patches0):
             texts0[i].set_color(patch.get_facecolor())
             texts0[i].set_fontsize(15)
@@ -222,34 +209,34 @@ class Node_profile:
         else:
             ax[0].legend(task_label,bbox_to_anchor=(1.5,0.5), bbox_transform=plt.gcf().transFigure, loc="lower right",fontsize = 12)
 
-        module_task_energy = []
-        module_task_label  = []
-        module_label       = []
-        module_task_t_active = []
-        colors_module_task = []
+        component_task_energy = []
+        component_task_label  = []
+        component_label       = []
+        component_task_t_active = []
+        colors_component_task = []
         colors = ( "blue", "green", "red","orange", "indigo", "beige")
         i=0
         j=0
         indexModuleSleep = []
-        for module in self.node.get_module_list() :
-            module_label.append(module.get_name())
+        for component in self.node.get_component_list() :
+            component_label.append(component.get_name())
             indexModuleSleep.append(j)
-            for state in module.state_list:
-                module_task_energy.append(state.get_energy())
-                module_task_label.append(state.get_name())
-                module_task_t_active.append(state.get_activeTime())
-                colors_module_task.append(colors[i])  
+            for state in component.state_list:
+                component_task_energy.append(state.get_energy())
+                component_task_label.append(state.get_name())
+                component_task_t_active.append(state.get_activeTime())
+                colors_component_task.append(colors[i])  
                 j=j+1
             i=i+1 
  
-        labels1 = [('{}'+'\n'*int(100*b>7)+'({:.1f}%)').format(a,100*b)*int(100*b>0.5) for a,b in zip(module_task_label,np.asarray(module_task_energy)/self.energy)]
-        patches1, texts1 = ax[1].pie(module_task_energy, labels = labels1, 
+        labels1 = [('{}'+'\n'*int(100*b>7)+'({:.1f}%)').format(a,100*b)*int(100*b>0.5) for a,b in zip(component_task_label,np.asarray(component_task_energy)/self.energy)]
+        patches1, texts1 = ax[1].pie(component_task_energy, labels = labels1, 
                                             shadow=False, 
-                                            startangle=0, colors= colors_module_task,
+                                            startangle=0, colors= colors_component_task,
                                             wedgeprops={'linewidth': 1.0, 'edgecolor': 'white'},
                                             textprops={'size': 'x-large'},)
         ax[1].set_title("Modules energy repartition",fontsize = 15)
-        ax[1].legend([patches1[i] for i in indexModuleSleep],module_label, bbox_to_anchor=(1,0), bbox_transform=plt.gcf().transFigure, loc="lower right",fontsize = 12)
+        ax[1].legend([patches1[i] for i in indexModuleSleep],component_label, bbox_to_anchor=(1,0), bbox_transform=plt.gcf().transFigure, loc="lower right",fontsize = 12)
         for i, patch in enumerate(patches1):
             texts1[i].set_color(patch.get_facecolor())
             texts1[i].set_fontsize(11)
@@ -266,24 +253,24 @@ class Node_profile:
     def plot_Modules(self,save=False,filename="test"):
         fig, ax = plt.subplots(1,1,figsize =(6, 8))
 
-        module_label       = []
-        module_energy      = []
+        component_label       = []
+        component_energy      = []
         colors = ( "blue", "green", "red","orange", "indigo", "beige")
         i=0
         j=0
         indexModuleSleep = []
-        for module in self.node.get_module_list() :
-            module_label.append(module.get_name())
-            module_energy.append(module.get_energy())
+        for component in self.node.get_component_list() :
+            component_label.append(component.get_name())
+            component_energy.append(component.get_energy())
             i=i+1 
  
-        patches1, texts1 = ax.pie(module_energy, labels = module_label, 
+        patches1, texts1 = ax.pie(component_energy, labels = component_label, 
                                             shadow=False, 
                                             startangle=0, colors= listColor,
                                             wedgeprops={'linewidth': 1.0, 'edgecolor': 'black'},
                                             textprops={'size': 'x-large'},)
         ax.set_title("Modules energy repartition",fontsize = 15)
-        ax.legend([patches1[i] for i in indexModuleSleep],module_label, bbox_to_anchor=(1,0), bbox_transform=plt.gcf().transFigure, loc="lower right",fontsize = 12)
+        ax.legend([patches1[i] for i in indexModuleSleep],component_label, bbox_to_anchor=(1,0), bbox_transform=plt.gcf().transFigure, loc="lower right",fontsize = 12)
         for i, patch in enumerate(patches1):
             texts1[i].set_color(patch.get_facecolor())
             texts1[i].set_fontsize(11)
@@ -292,15 +279,15 @@ class Node_profile:
         if(save):
             plt.savefig(filename+".svg", format="svg")
 
-    def print_Modules(self):
+    def print_components(self):
         sum_energy = 0
         print("-----------------------------------------------------------------")
         print("                        Module summary                           ")
         print("-----------------------------------------------------------------") 
         print ("{:<12} {:<12} {:<12} {:<12} {:<12}  ".format("Module","State","Active [s]","Energy [mJ]","Av. Cur.[uA]"))
-        for module in self.node.get_module_list():
-            print ("{:<12} {:<12} {:<12.4f} {:<12.4f} {:<12.7f}  ".format(module.get_name()," ",module.get_activeTime(),module.get_energy(),module.get_average_current()*1000))
-            for state in module.state_list:
+        for component in self.node.get_component_list():
+            print ("{:<12} {:<12} {:<12.4f} {:<12.4f} {:<12.7f}  ".format(component.get_name()," ",component.get_activeTime(),component.get_energy(),component.get_average_current()*1000))
+            for state in component.state_list:
                 sum_energy = sum_energy + state.get_energy()
                 print ("{:<12} {:<12} {:<12.4f} {:<12.4f} ".format("     -",state.get_name(),state.get_activeTime(),state.get_energy()))
         print("-----------------------------------------------------------------")      
@@ -316,7 +303,7 @@ class Node_profile:
             print ("{:<12} {:<12} {:<12.4f} {:<12.4f} {:<12.4f}  ".format(battery.get_name(), battery.get_v(), battery.get_capacity_mAh(), battery.get_i(), battery.get_lifetime()))
             print("-----------------------------------------------------------------")
 
-    def print_Tasks(self):
+    def print_tasks(self):
         print("-------------------------------------------------")
         print("            Tasks summary                        ")
         print("-------------------------------------------------")

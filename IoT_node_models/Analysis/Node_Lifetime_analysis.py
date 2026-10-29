@@ -28,9 +28,9 @@ sys.path.append(parent_directory)
 #sys.path.append(os.path.dirname(parent_directory))
 #sys.path.append(os.path.dirname(os.path.dirname(parent_directory)))
 
-from IoT_node_models.Energy_model                        import *
-from IoT_node_models.Energy_model.Wireless_communication import *
-from IoT_node_models.Hardware_Modules                    import *
+from IoT_node_models.Node_description                        import *
+from IoT_node_models.Node_description.Wireless_communication import *
+from IoT_node_models.Component_set                    import *
 from IoT_node_models.Impact_model                        import *
 
 

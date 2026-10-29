@@ -6,10 +6,10 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from Energy_model.Wireless_communication   import LoRa_library as LoRa
-from Energy_model.Wireless_communication   import Optimal_strategy as optStrat
-from Energy_model.Node      import *
-from Energy_model.Node_task import *
+from Node_description.Wireless_communication   import LoRa_library as LoRa
+from Node_description.Wireless_communication   import Optimal_strategy as optStrat
+from Node_description.Node      import *
+from Node_description.Task import *
 
 
 
@@ -23,25 +23,24 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from Energy_model.Wireless_communication   import LoRa_library as LoRa
-from Energy_model.Wireless_communication   import Optimal_strategy as optStrat
-from Energy_model.Node      import *
-from Energy_model.Node_task import *
+from Node_description.Wireless_communication   import LoRa_library as LoRa
+from Node_description.Wireless_communication   import Optimal_strategy as optStrat
+from Node_description.Node      import *
+from Node_description.Task import *
 
 
 
 ##############################################################################################
 
 
-class TX_task(Node_task):
-    def __init__(self,name = "None", radio = None,proc_subtasks=None, modules=None, state_TX=None,TX_duration =0, I_TX=None, P_TX=None, Ptx=0):
+class TX_task(Task):
+    def __init__(self,name = "None", radio = None,proc_actions=None, state_TX=None,TX_duration =0, I_TX=None, P_TX=None, Ptx=0):
 
         self.radio     = radio
-        self.modules   = modules
 
         self.state_TX      = state_TX
         self.radio.add_state(self.state_TX )
-        self.subtask_TX    = Node_subtask(name='TX ' + name ,module=radio , moduleState = self.state_TX     , stateDuration=TX_duration)
+        self.action_TX    = Action(name='TX ' + name , componentState = self.state_TX     , stateDuration=TX_duration)
         self.TX_duration = TX_duration
 
         self.P_TX_interpolator = None
@@ -51,12 +50,12 @@ class TX_task(Node_task):
         if (I_TX is not None) and (P_TX is not None):
             self.set_TX_Power_config(self.P_TX ,  self.I_TX)
 
-        self.proc_subtasks = proc_subtasks
+        self.proc_actions = proc_actions
 
-        super().__init__(name = name, node_modules= self.modules,subtasks=self.proc_subtasks+ [self.subtask_TX])
+        super().__init__(name = name, actions=self.proc_actions+ [self.action_TX])
 
     def change_TX_duration(self,duration):
-        self.subtask_TX.set_stateDuration(duration)
+        self.action_TX.set_stateDuration(duration)
 
     def set_TX_Power_config(self, P_TX, I_TX ):
         if np.size(I_TX)<=1 or np.size(P_TX)<=1 :
@@ -74,20 +73,20 @@ class TX_task(Node_task):
             print("Error : No power config. made and no Itx specified")
         if np.size(self.I_TX)==0 or np.size(self.P_TX)==0 :
             self.Ptx = Ptx
-            self.subtask_TX.set_param_i(Itx)
+            self.action_TX.set_param_i(Itx)
         else : 
             if(Ptx < np.min(self.P_TX)):
                 Ptx = np.min(self.P_TX)
             elif (Ptx > np.max(self.P_TX)):
                 Ptx = np.max(self.P_TX)
             self.Ptx = Ptx
-            self.subtask_TX.set_param_i(self.P_TX_interpolator(Ptx))
+            self.action_TX.set_param_i(self.P_TX_interpolator(Ptx))
 
 ##############################################################################################          
 
 class LoRa_TX_task(TX_task):
-    def __init__(self,name = "None", radio = None, proc_subtasks=None, modules=None, state_TX=None, I_TX=[], P_TX=[], Ptx=0, SF = 7 ,Payload = 100 ,Header = True ,DE = None ,Coding = 1 ,BW = 125e3  ):
-        super().__init__(name = name, radio = radio,proc_subtasks=proc_subtasks, modules=modules, state_TX=state_TX,TX_duration =0, I_TX=I_TX, P_TX=P_TX,Ptx=Ptx)
+    def __init__(self,name = "None", radio = None, proc_actions=None, state_TX=None, I_TX=[], P_TX=[], Ptx=0, SF = 7 ,Payload = 100 ,Header = True ,DE = None ,Coding = 1 ,BW = 125e3  ):
+        super().__init__(name = name, radio = radio,proc_actions=proc_actions, state_TX=state_TX,TX_duration =0, I_TX=I_TX, P_TX=P_TX,Ptx=Ptx)
         self.set_radio_parameters(SF=SF,Coding=Coding,Header=Header,DE = DE,BW = BW, Payload = Payload)
         #For settings of Link budget
         self.PL_model = None
@@ -148,20 +147,19 @@ class LoRa_TX_task(TX_task):
 ##############################################################################################      
 
 
-class RX_task(Node_task):
-    def __init__(self,name = "None", radio = None, proc_subtasks=None,modules=None,state_RX=None,RX_duration =0):
+class RX_task(Task):
+    def __init__(self,name = "None", radio = None, proc_actions=None,state_RX=None,RX_duration =0):
 
         self.radio        = radio
-        self.modules      = modules
 
         self.state_RX      = state_RX
         self.radio.add_state(self.state_RX )
-        self.subtask_RX    = Node_subtask(name='RX ' + name ,module=radio , moduleState = self.state_RX     , stateDuration=RX_duration)
+        self.action_RX    = Action(name='RX ' + name , componentState = self.state_RX     , stateDuration=RX_duration)
         self.RX_duration   = RX_duration
 
-        self.proc_subtasks = proc_subtasks
+        self.proc_actions = proc_actions
 
-        super().__init__(name = name, node_modules= modules, subtasks=self.proc_subtasks+ [self.subtask_RX])
+        super().__init__(name = name,  actions=self.proc_actions+ [self.action_RX])
 
     def change_RX_duration(self,duration):
-        self.subtask_RX.set_stateDuration(duration)
+        self.action_RX.set_stateDuration(duration)

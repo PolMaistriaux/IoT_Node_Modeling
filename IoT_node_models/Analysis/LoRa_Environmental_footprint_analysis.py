@@ -20,8 +20,8 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from IoT_node_models.Energy_model import *
-from IoT_node_models.Hardware_Modules import *
+from IoT_node_models.Node_description import *
+from IoT_node_models.Component_set import *
 from IoT_node_models.Impact_model import *
 
 path_to_save_svg = "SavedFiles"

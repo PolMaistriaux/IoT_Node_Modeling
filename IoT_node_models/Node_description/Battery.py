@@ -1,6 +1,6 @@
 #%%
 
-from Energy_model.Node_module import *
+from Node_description.Component import *
 
 ################################
 

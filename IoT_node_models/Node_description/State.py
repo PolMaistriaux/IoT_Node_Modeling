@@ -4,15 +4,15 @@
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Given state of a module described by:
-#   -i : Current consumption of the module in the state
-#   -v : Operating voltage of the module in the state
+# Given state of a component described by:
+#   -i : Current consumption of the component in the state
+#   -v : Operating voltage of the component in the state
 # Additional variables used:
 #   -Duration if it has a fixed one (not mandatory)
 #   -energy_day   : variable use to computes the overall energy consumed by employing this state in the current use phase scenario
 #   -t_active_day : variable use to computes the overall time spent in this state in the current use phase scenario
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-class Module_state:
+class State:
     def __init__(self,name = "None", i=0, v=0, duration=None): # constructor
         self.name           = name
         self.i              = i
@@ -22,7 +22,7 @@ class Module_state:
         self.energy     = 0
         self.t_active   = 0
 
-    def reset_Module_state (self):
+    def reset_state (self):
         self.energy   = 0
         self.t_active = 0
 

@@ -1,9 +1,9 @@
 import numpy as np
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Energy_model'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Node_description'))
 
-from Energy_model.Node_profile import *
+from Node_description.Profile import *
 
 
 #I_PABoost_3V3 = np.array([ 37.42, 38.89, 40.26, 41.49, 42.88, 44.48, 45.99, 47.83, 50.15, 52.40, 55.73, 59.31, 63.70, 70.12, 76.86, 86.23, 88.82, 96.49,105.58]) #86.23
@@ -43,33 +43,33 @@ MCU_RFM_duration = 0.20496384+0.10125312
 #3.3V
 ############################
 
-radio_module_3V3 = Node_module(name="LoRa radio",
+radio_component_3V3 = Component(name="LoRa radio",
                             v=3.3,
                             i_sleep=I_Sleep_3V3)
-radio_state_TX_3V3 = Module_state("TX",i = I_TX_3V3,duration = None)
-radio_state_RX_3V3 = Module_state("RX",i = I_RX_3V3,duration = None)
-radio_module_3V3.add_state(radio_state_TX_3V3)
-radio_module_3V3.add_state(radio_state_RX_3V3)
+radio_state_TX_3V3 = State("TX",i = I_TX_3V3,duration = None)
+radio_state_RX_3V3 = State("RX",i = I_RX_3V3,duration = None)
+radio_component_3V3.add_state(radio_state_TX_3V3)
+radio_component_3V3.add_state(radio_state_RX_3V3)
 
 ############################
 #1.8V
 ############################
 
-radio_module_1V8 = Node_module(name="LoRa radio",
+radio_component_1V8 = Component(name="LoRa radio",
                             v=1.8,
                             i_sleep=I_Sleep_1V8)
-radio_state_TX_1V8 = Module_state("TX",i = I_TX_1V8,duration = None)
-radio_state_RX_1V8 = Module_state("RX",i = I_RX_1V8,duration = None)
-radio_module_1V8.add_state(radio_state_TX_1V8)
-radio_module_1V8.add_state(radio_state_RX_1V8)
+radio_state_TX_1V8 = State("TX",i = I_TX_1V8,duration = None)
+radio_state_RX_1V8 = State("RX",i = I_RX_1V8,duration = None)
+radio_component_1V8.add_state(radio_state_TX_1V8)
+radio_component_1V8.add_state(radio_state_RX_1V8)
 
 ############################
 #3.3V from datasheet
 ############################
-radio_module_Data = Node_module(name="LoRa radio",
+radio_component_Data = Component(name="LoRa radio",
                             v=3.3,
                             i_sleep=I_Sleep_Data)
-radio_state_TX_Data = Module_state("TX",i = I_TX_3V3,duration = None)
-radio_state_RX_Data = Module_state("RX",i = I_RX_3V3,duration = None)
-radio_module_Data.add_state(radio_state_TX_Data)
-radio_module_Data.add_state(radio_state_RX_Data)
+radio_state_TX_Data = State("TX",i = I_TX_3V3,duration = None)
+radio_state_RX_Data = State("RX",i = I_RX_3V3,duration = None)
+radio_component_Data.add_state(radio_state_TX_Data)
+radio_component_Data.add_state(radio_state_RX_Data)

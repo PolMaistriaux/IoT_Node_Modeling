@@ -3,28 +3,28 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from Energy_model.Node_module_state import *
-from Energy_model.Battery           import *
-from Energy_model.PMU               import *
+from Node_description.State import *
+from Node_description.Battery           import *
+from Node_description.PMU               import *
 
 
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Given module of the node described by:
+# Given component of the node described by:
 #   -Current consumption in sleep mode
 #   -Operating voltage in sleep mode
-#   -List of the different module state in which it can operate (sleep is referred a default state)
+#   -List of the different component state in which it can operate (sleep is referred a default state)
 # Additional variables used:
-#   -energy_day   : overall energy consumed by the module over the day
+#   -energy_day   : overall energy consumed by the component over the day
 #   -t_active_day : overall time spent in active (not in sleep state) during the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Node:
-    def __init__(self,name = "None", module_list=[], PMU_composition =[], Battery = None): # constructor
+    def __init__(self,name = "None", component_list=[], PMU_composition =[], Battery = None): # constructor
         self.name = name
         self.energy = 0
         self.average_power = 0
-        self.module_list = module_list
+        self.component_list = component_list
 
         # Powered node
         self.isPowered = False
@@ -34,8 +34,8 @@ class Node:
         if not self.check_correctness() :
             return
     
-    def get_module_list(self):
-        return self.module_list
+    def get_component_list(self):
+        return self.component_list
     
     def get_name(self):
         return self.name
@@ -61,26 +61,26 @@ class Node:
     def set_name(self, name):
         self.name = name
 
-    def set_module_list(self, module_list):
-        self.module_list = module_list
+    def set_component_list(self, component_list):
+        self.component_list = component_list
 
 
     def reset_Node(self):
         self.energy = 0
         self.average_power = 0
-        for module in self.module_list:
-            module.reset_module()
+        for component in self.component_list:
+            component.reset_component()
 
 
 
     def compute(self, time_window, verbose = False):
         #################################################################################
-        #  For each module, compute the energy it consumes over a single day
+        #  For each component, compute the energy it consumes over a single day
         #################################################################################
         self.energy = 0
-        for module in self.module_list:
-            #Compute the module energy for a single day, considering sleep mode.
-            energy = module.compute_energy(time_window)
+        for component in self.component_list:
+            #Compute the component energy for a single day, considering sleep mode.
+            energy = component.compute_energy(time_window)
             self.energy = self.energy + energy
         self.average_power = self.energy/time_window
 
@@ -110,23 +110,23 @@ class Node:
         
         self.isPowered = True
 
-        for module in self.module_list:
+        for component in self.component_list:
             found = 0
             for PMU in self.PMU_composition:
                 if (PMU.v_in != self.Battery.v):
                     print("Error : PMU supply voltage is different from battery voltage")
                     return False
                 try:
-                    for PMU_module in PMU.module_list:
-                        if PMU_module == module :
+                    for PMU_component in PMU.component_list:
+                        if PMU_component == component :
                             found = 1
                         if found>1:
-                            raise Exception("Error : module registered multiples in a PMU or in multiple PMUs")
+                            raise Exception("Error : component registered multiples in a PMU or in multiple PMUs")
                             return False
                 except:
-                    raise Exception("Error : PMU module_list is not properly defined")
+                    raise Exception("Error : PMU component_list is not properly defined")
                     return False
             if found != 1:
-                raise Exception("Error : module %s has no PMU"%module.get_name())
+                raise Exception("Error : component %s has no PMU"%component.get_name())
                 return False
         return True

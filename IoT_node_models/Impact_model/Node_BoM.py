@@ -74,7 +74,7 @@ class Node_BoM:
         height_e_up = np.array([self.casing[2],self.connectivtiy[2], self.eol[2],self.memory[2],self.others[2],self.pcb[2],self.power_supply[2],self.processing[2],self.sensing[2],self.ui[2],transport        ,self.battery[2],self.F_node[2]])
         height_e_do = np.array([self.casing[1],self.connectivtiy[1], self.eol[1],self.memory[1],self.others[1],self.pcb[1],self.power_supply[1],self.processing[1],self.sensing[1],self.ui[1],transport        ,self.battery[1],self.F_node[1]])
         height_n    = np.array([0             ,0                   , 0          ,0             ,0             ,0          ,0                   ,0                 ,0              ,0         ,0                ,0              ,self.battery[0]])
-        xlabel      = np.array(["Casing","Connectivity","EoL" ,"Memory","Others","PCB" ,"PMU" ,"Processing","Sensing","User Interface"  ,"Transport (Pl. & Decom.)", "Battery module", "Total"])
+        xlabel      = np.array(["Casing","Connectivity","EoL" ,"Memory","Others","PCB" ,"PMU" ,"Processing","Sensing","User Interface"  ,"Transport (Pl. & Decom.)", "Battery component", "Total"])
         color       = np.array([dictColor["CarolinaBlue"]  ,dictColor["CarolinaBlue"]        ,dictColor["CarolinaBlue"],dictColor["CarolinaBlue"]  ,dictColor["CarolinaBlue"]  ,dictColor["CarolinaBlue"],dictColor["CarolinaBlue"],dictColor["CarolinaBlue"]      ,dictColor["CarolinaBlue"]   ,dictColor["CarolinaBlue"],dictColor["Green"]    , dictColor["Sandy"] , dictColor["CarolinaBlue"] ])         
         toRemove    = [i for i in np.arange(len(height)) if height[i]==0]
         for index in toRemove[::-1]:

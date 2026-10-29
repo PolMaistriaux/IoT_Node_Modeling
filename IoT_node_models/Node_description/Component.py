@@ -4,26 +4,26 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from Energy_model.Node_module_state import *
+from Node_description.State import *
 
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Given module of the node described by:
+# Given component of the node described by:
 #   -Current consumption in sleep mode
 #   -Operating voltage in sleep mode
-#   -List of the different module state in which it can operate (sleep is referred a default state)
+#   -List of the different component state in which it can operate (sleep is referred a default state)
 # Additional variables used:
-#   -energy_day   : overall energy consumed by the module over the day
+#   -energy_day   : overall energy consumed by the component over the day
 #   -t_active_day : overall time spent in active (not in sleep state) during the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-class Node_module:
+class Component:
     def __init__(self,name = "None", v=0, i_sleep =0): # constructor
         self.name          = name
         self.i_sleep       = i_sleep
         self.v             = v
         self.state_list    = []
-        self.sleep_state   = Module_state("Sleep",v = v, i = i_sleep, duration = None)
+        self.sleep_state   = State("Sleep",v = v, i = i_sleep, duration = None)
         self.state_list.append(self.sleep_state)
         # Result of the model computation
         self.energy          = 0
@@ -68,15 +68,15 @@ class Node_module:
         ##############################################
         # 1 ) Reset the different sleep variables
         ##############################################
-        # Do not reset the t_active of each module state, as they have been update by the tasks
+        # Do not reset the t_active of each component state, as they have been update by the tasks
         self.energy                   = 0
-        self.sleep_state.reset_Module_state()
+        self.sleep_state.reset_state()
 
         ########################################################
-        # 2 ) For each module state, compute the energy spent
+        # 2 ) For each component state, compute the energy spent
         ########################################################
         for state in self.state_list:
-            # Accumulate overall energy consumed by the module
+            # Accumulate overall energy consumed by the component
             self.energy = self.energy + state.get_energy()
             # Calculate time spent in standby/default/sleep mode
             time = time - state.get_activeTime()
@@ -86,7 +86,7 @@ class Node_module:
             return
 
         ########################################################
-        # 3 ) Update the sleep data of the module
+        # 3 ) Update the sleep data of the component
         ########################################################  
         self.sleep_state.set_duration(   time)
         self.sleep_state.add_active_time(time)
@@ -100,21 +100,21 @@ class Node_module:
         return self.energy
 
     
-    def add_state(self, module_state):
-        if isinstance(module_state,Module_state):
+    def add_state(self, state):
+        if isinstance(state,State):
             for i,x in enumerate(self.state_list):
-                if id(x)==id(module_state):
-                    self.state_list[i]=module_state
+                if id(x)==id(state):
+                    self.state_list[i]=state
                     return
-            module_state.v = self.v
-            self.state_list.append(module_state)
+            state.v = self.v
+            self.state_list.append(state)
 
-    def reset_module(self):
+    def reset_component(self):
         self.energy          = 0
         self.average_current = 0
         self.average_power   = 0
         self.t_active        = 0
-        self.sleep_state.reset_Module_state()
+        self.sleep_state.reset_state()
         self.sleep_state.set_duration(0)
-        for module_state in self.state_list:
-            module_state.reset_Module_state()
+        for state in self.state_list:
+            state.reset_state()
