@@ -32,8 +32,8 @@ def deployment_sweep_fdata  (Replacement_strategy = False,Footprint=None,Node=No
     
     f_initial = Node.get_task_rate(Task)
     battery_footprint = Footprint.battery[0]
-    capa_1AA = Node.get_Node().get_Battery().get_capacity_mAh()
-    rsd_init = Node.get_Node().get_Battery().get_selfdischarge_p_year()
+    capa_1AA = Node.get_hardware().get_Battery().get_capacity_mAh()
+    rsd_init = Node.get_hardware().get_Battery().get_selfdischarge_p_year()
 
     Footprint.set_transport(dtrans,transport_model)
 
@@ -44,12 +44,12 @@ def deployment_sweep_fdata  (Replacement_strategy = False,Footprint=None,Node=No
         if paramType == "dnode":
             d = value
         elif paramType == "rsd":
-            Node.get_Node().get_Battery().set_selfdischarge_p_year(value)
+            Node.get_hardware().get_Battery().set_selfdischarge_p_year(value)
         elif paramType == "dtrans":
             Footprint.set_transport(value,transport_model)
 
         for indexAA,AA in enumerate(nAA):
-            Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA*AA )
+            Node.get_hardware().get_Battery().set_capacity_mAh( capa_1AA*AA )
             Footprint.battery[0]      = battery_footprint *AA
 
             for indexf,f in enumerate(fdata):
@@ -63,8 +63,8 @@ def deployment_sweep_fdata  (Replacement_strategy = False,Footprint=None,Node=No
 
 
     Node.change_task_rate(Task,f_initial)
-    Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA )   
-    Node.get_Node().get_Battery().set_selfdischarge_p_year(rsd_init)  
+    Node.get_hardware().get_Battery().set_capacity_mAh( capa_1AA )   
+    Node.get_hardware().get_Battery().set_selfdischarge_p_year(rsd_init)  
     Footprint.battery[0]      = battery_footprint
 
 
@@ -107,7 +107,7 @@ def deployment_sweep_fdata  (Replacement_strategy = False,Footprint=None,Node=No
         ax.vlines(1, ymin, ymax    , linestyle = "dashed", color = "black")
         ax.vlines(24, ymin, ymax   , linestyle = "dashed", color = "black")
         ax.vlines(24*12, ymin, ymax, linestyle = "dashed", color = "black")
-        ax.set_title("Fdata : Time period: %d years, Rsd : %.1f %%, Dtrans %u km"%(Nyears,Node.get_Node().get_Battery().get_selfdischarge_p_year(),dtrans))
+        ax.set_title("Fdata : Time period: %d years, Rsd : %.1f %%, Dtrans %u km"%(Nyears,Node.get_hardware().get_Battery().get_selfdischarge_p_year(),dtrans))
         
         ax.tick_params(axis='x', labelsize = 12)
 
@@ -128,8 +128,8 @@ def deployment_sweep_ebatt  (Replacement_strategy = False,Footprint=None,Node=No
     
 
     battery_footprint = Footprint.battery[0]
-    capa_1AA = Node.get_Node().get_Battery().get_capacity_mAh()
-    rsd_init = Node.get_Node().get_Battery().get_selfdischarge_p_year()
+    capa_1AA = Node.get_hardware().get_Battery().get_capacity_mAh()
+    rsd_init = Node.get_hardware().get_Battery().get_selfdischarge_p_year()
 
     Footprint.set_transport(dtrans,transport_model)
 
@@ -139,23 +139,23 @@ def deployment_sweep_ebatt  (Replacement_strategy = False,Footprint=None,Node=No
 
     for index, value in enumerate(param):
         if paramType == "rsd":
-            Node.get_Node().get_Battery().set_selfdischarge_p_year(value)
+            Node.get_hardware().get_Battery().set_selfdischarge_p_year(value)
         elif paramType == "dtrans":
             Footprint.set_transport(value,transport_model)
 
         for indexAA,AA in enumerate(nAA):
             result[0,indexAA,index] = capa_1AA*AA
-            Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA*AA )
+            Node.get_hardware().get_Battery().set_capacity_mAh( capa_1AA*AA )
             Footprint.battery[0]      = battery_footprint *AA
 
             [res1,res2,lifetime,residue] =deployment_battery_replacement(Replacement_type = "Complete",Footprint=Footprint,Node=Node,Nyears= Nyears)
             [res3,res4,lifetime,residue] =deployment_battery_replacement(Replacement_type = "Battery" ,Footprint=Footprint,Node=Node,Nyears= Nyears)
             if lifetime > Nyears : 
                 result[1:,indexAA,index] = [0,0,0,0,0,0]
-            result[1:,indexAA,index]= [res1,res2,res3,res4,lifetime,Node.get_Node().get_Battery().get_capacity_mAh()/(24*365*Node.get_Node().get_Battery().get_i())]
+            result[1:,indexAA,index]= [res1,res2,res3,res4,lifetime,Node.get_hardware().get_Battery().get_capacity_mAh()/(24*365*Node.get_hardware().get_Battery().get_i())]
 
-    Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA )   
-    Node.get_Node().get_Battery().set_selfdischarge_p_year(rsd_init)  
+    Node.get_hardware().get_Battery().set_capacity_mAh( capa_1AA )   
+    Node.get_hardware().get_Battery().set_selfdischarge_p_year(rsd_init)  
     Footprint.battery[0]      = battery_footprint
 
     if figAppend is None :

@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from Node_description.Wireless_communication   import LoRa_library as LoRa
 from Node_description.Wireless_communication   import Optimal_strategy as optStrat
-from Node_description.Node      import *
+from Node_description.Hardware      import *
 from Node_description.Task import *
 
 
@@ -25,7 +25,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from Node_description.Wireless_communication   import LoRa_library as LoRa
 from Node_description.Wireless_communication   import Optimal_strategy as optStrat
-from Node_description.Node      import *
+from Node_description.Hardware      import *
 from Node_description.Task import *
 
 
@@ -34,12 +34,10 @@ from Node_description.Task import *
 
 
 class TX_task(Task):
-    def __init__(self,name = "None", radio = None,proc_actions=None, state_TX=None,TX_duration =0, I_TX=None, P_TX=None, Ptx=0):
+    def __init__(self,name = "None", proc_actions=None, state_TX=None,TX_duration =0, I_TX=None, P_TX=None, Ptx=0):
 
-        self.radio     = radio
 
         self.state_TX      = state_TX
-        self.radio.add_state(self.state_TX )
         self.action_TX    = Action(name='TX ' + name , componentState = self.state_TX     , stateDuration=TX_duration)
         self.TX_duration = TX_duration
 
@@ -85,8 +83,8 @@ class TX_task(Task):
 ##############################################################################################          
 
 class LoRa_TX_task(TX_task):
-    def __init__(self,name = "None", radio = None, proc_actions=None, state_TX=None, I_TX=[], P_TX=[], Ptx=0, SF = 7 ,Payload = 100 ,Header = True ,DE = None ,Coding = 1 ,BW = 125e3  ):
-        super().__init__(name = name, radio = radio,proc_actions=proc_actions, state_TX=state_TX,TX_duration =0, I_TX=I_TX, P_TX=P_TX,Ptx=Ptx)
+    def __init__(self,name = "None",  proc_actions=None, state_TX=None, I_TX=[], P_TX=[], Ptx=0, SF = 7 ,Payload = 100 ,Header = True ,DE = None ,Coding = 1 ,BW = 125e3  ):
+        super().__init__(name = name, proc_actions=proc_actions, state_TX=state_TX,TX_duration =0, I_TX=I_TX, P_TX=P_TX,Ptx=Ptx)
         self.set_radio_parameters(SF=SF,Coding=Coding,Header=Header,DE = DE,BW = BW, Payload = Payload)
         #For settings of Link budget
         self.PL_model = None
@@ -148,13 +146,10 @@ class LoRa_TX_task(TX_task):
 
 
 class RX_task(Task):
-    def __init__(self,name = "None", radio = None, proc_actions=None,state_RX=None,RX_duration =0):
-
-        self.radio        = radio
+    def __init__(self,name = "None",  proc_actions=None,state_RX=None,RX_duration =0):
 
         self.state_RX      = state_RX
-        self.radio.add_state(self.state_RX )
-        self.action_RX    = Action(name='RX ' + name , componentState = self.state_RX     , stateDuration=RX_duration)
+        self.action_RX     = Action(name='RX ' + name , componentState = self.state_RX     , stateDuration=RX_duration)
         self.RX_duration   = RX_duration
 
         self.proc_actions = proc_actions

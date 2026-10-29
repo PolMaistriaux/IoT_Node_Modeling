@@ -8,13 +8,13 @@ import os
 try :
     from Node_description.Wireless_communication    import LoRa_library as LoRa
     from Node_description.Wireless_communication    import Optimal_strategy as optStrat
-    from Node_description.LoRa_Node        import *
+    from IoT_node_models.Node_description.LoRa_Hardware        import *
     from Node_description.Profile     import *
     from Node_description.Transceiver_task import *
 except : 
     from Wireless_communication    import LoRa_library     as LoRa
     from Wireless_communication    import Optimal_strategy as optStrat
-    from LoRa_Node        import *
+    from IoT_node_models.Node_description.LoRa_Hardware        import *
     from Profile     import *
     from Transceiver_task import *
 
@@ -32,8 +32,8 @@ except :
 #       * Header
 ################################
 class LoRa_Profile(Profile):
-    def __init__(self,name = "None",LoRa_node = None, time_window=(24*60*60), Proc_action_tx=[], Proc_action_rx=[],RX_state=None,TX_state=None, I_TX=None, P_TX=None): 
-        super().__init__(name = name,node = LoRa_node, time_window=time_window)
+    def __init__(self,name = "None", time_window=(24*60*60), Proc_action_tx=[], Proc_action_rx=[],RX_state=None,TX_state=None, I_TX=None, P_TX=None): 
+        super().__init__(name = name, time_window=time_window)
         self.radio_RX_state         = RX_state
         self.radio_TX_state         = TX_state
         self.proc_action_tx        = Proc_action_tx
@@ -42,12 +42,12 @@ class LoRa_Profile(Profile):
         self.P_TX  = P_TX
 
     def create_task_tx(self, name="None", Ptx=0, SF = 7 ,Payload = 100 ,Header = True ,DE = None ,Coding = 1 ,BW = 125e3, TX_rate=1):
-        task_tx = LoRa_TX_task(name = name, radio = self.node.radio_component,proc_actions=self.proc_action_tx, state_TX=self.radio_TX_state , I_TX=self.I_TX, P_TX=self.P_TX, Ptx=Ptx, SF = SF ,Payload = Payload ,Header = Header ,DE = DE ,Coding = Coding ,BW = BW  )
+        task_tx = LoRa_TX_task(name = name, proc_actions=self.proc_action_tx, state_TX=self.radio_TX_state , I_TX=self.I_TX, P_TX=self.P_TX, Ptx=Ptx, SF = SF ,Payload = Payload ,Header = Header ,DE = DE ,Coding = Coding ,BW = BW  )
         self.add_task(task_tx,TX_rate)
         return task_tx
     
     def create_task_rx(self, name="None", RX_rate=0, RX_duration=0):
-        task_rx = RX_task(name = name, radio = self.node.radio_component,proc_actions=self.proc_action_rx, state_RX=self.radio_RX_state, RX_duration=RX_duration)
+        task_rx = RX_task(name = name, proc_actions=self.proc_action_rx, state_RX=self.radio_RX_state, RX_duration=RX_duration)
         self.add_task(task_rx,RX_rate)
         return task_rx
 
@@ -62,7 +62,7 @@ class LoRa_Profile(Profile):
 if __name__ == '__main__':
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Component_set'))
     from Component_set.Node_example import *
-    node = LoRa_Node(name= "IoT Node", component_list= component_List_3V3, MCU_component   = apollo_component_3V3, radio_component = radio_component_3V3)
+    node = LoRa_Hardware(name= "IoT Node", component_list= component_List_3V3, MCU_component   = apollo_component_3V3, radio_component = radio_component_3V3)
 
     node_prof= LoRa_Profile("Profile", node, MCU_active_state = apollo_state_active_3V3, RX_state=radio_state_RX_3V3,TX_state=radio_state_TX_3V3,
                     P_TX= PTX_PABOOST_3V3, I_TX=I_PABoost_3V3, )

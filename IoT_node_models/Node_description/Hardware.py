@@ -19,7 +19,7 @@ from Node_description.PMU               import *
 #   -energy_day   : overall energy consumed by the component over the day
 #   -t_active_day : overall time spent in active (not in sleep state) during the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-class Node:
+class Hardware:
     def __init__(self,name = "None", component_list=[], PMU_composition =[], Battery = None): # constructor
         self.name = name
         self.energy = 0
@@ -65,7 +65,7 @@ class Node:
         self.component_list = component_list
 
 
-    def reset_Node(self):
+    def reset_hardware(self):
         self.energy = 0
         self.average_power = 0
         for component in self.component_list:
@@ -96,6 +96,30 @@ class Node:
             if verbose:
                 print('Node lifetime is %.1f years. Average current drawn from battery : %.3f [mA]'%(self.Battery.get_lifetime(), self.Battery.get_i() ))
 
+
+    def print_components(self):
+        sum_energy = 0
+        print("-----------------------------------------------------------------")
+        print("                        Module summary                           ")
+        print("-----------------------------------------------------------------") 
+        print ("{:<12} {:<12} {:<12} {:<12} {:<12}  ".format("Component","State","Active [s]","Energy [mJ]","Av. Cur.[uA]"))
+        for component in self.get_component_list():
+            print ("{:<12} {:<12} {:<12.4f} {:<12.4f} {:<12.7f}  ".format(component.get_name()," ",component.get_activeTime(),component.get_energy(),component.get_average_current()*1000))
+            for state in component.state_list:
+                sum_energy = sum_energy + state.get_energy()
+                print ("{:<12} {:<12} {:<12.4f} {:<12.4f} ".format("     -",state.get_name(),state.get_activeTime(),state.get_energy()))
+        print("-----------------------------------------------------------------")      
+        print ("{:<12} {:<12} {:<12} {:<12.4f}  {:<6.4f}  {:<4} ".format("Total"," "," ",sum_energy,self.average_power,"[mW]"))
+        print("-----------------------------------------------------------------")
+        if self.get_isPowered() :  
+            print ("{:<12} {:<12} {:<12} {:<12} {:<12}  ".format("PMU","Vin[V]","Vout[V]","Energy [mJ]","Av. Cur.[uA]")) 
+            for PMU in self.get_PMU_composition():
+                print ("{:<12} {:<12} {:<12.4f} {:<12.4f} {:<12.4f}  ".format(PMU.get_name(),PMU.get_v_in(),PMU.get_v_out(),PMU.get_v_in()*PMU.get_i_in(),1000*PMU.get_i_in()))
+            print("-----------------------------------------------------------------")
+            print ("{:<12} {:<12} {:<12} {:<12} {:<12}  ".format("Battery","Vin[V]","C[mAh]","I [mJ]","Lifetime[years]")) 
+            battery = self.get_Battery()
+            print ("{:<12} {:<12} {:<12.4f} {:<12.4f} {:<12.4f}  ".format(battery.get_name(), battery.get_v(), battery.get_capacity_mAh(), battery.get_i(), battery.get_lifetime()))
+            print("-----------------------------------------------------------------")
 
 
 

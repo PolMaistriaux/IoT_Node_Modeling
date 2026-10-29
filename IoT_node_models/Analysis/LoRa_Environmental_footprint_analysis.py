@@ -33,8 +33,8 @@ def lora_deployment_sweep_dnode  (Replacement_strategy = False,Footprint=None,No
     d_initial = Task_tx.get_distance()
     f_initial = Node.get_task_rate(Task_tx)
     battery_footprint = Footprint.battery[0]
-    capa_1AA = Node.get_Node().get_Battery().get_capacity_mAh()
-    rsd_init = Node.get_Node().get_Battery().get_selfdischarge_p_year()
+    capa_1AA = Node.get_hardware().get_Battery().get_capacity_mAh()
+    rsd_init = Node.get_hardware().get_Battery().get_selfdischarge_p_year()
 
 
     dnode= np.arange(dmin,dmax,d_step)
@@ -46,7 +46,7 @@ def lora_deployment_sweep_dnode  (Replacement_strategy = False,Footprint=None,No
         elif paramType == "rsd":
             Node.Battery.selfdischarge_p_year = value
         elif paramType == "ebatt":
-            Node.get_Node().get_Battery().set_capacity_mAh(value*capa_1AA)
+            Node.get_hardware().get_Battery().set_capacity_mAh(value*capa_1AA)
         #elif paramType == "dtrans":
         #    Footprint.set_transport(value,transport_model)
 
@@ -58,12 +58,12 @@ def lora_deployment_sweep_dnode  (Replacement_strategy = False,Footprint=None,No
             [res3,res4,lifetime,residue] =deployment_battery_replacement(Replacement_type = "Battery" ,Footprint=Footprint,Node=Node,Nyears= Nyears)
             if lifetime > Nyears : 
                 result[1:,indexd,index] = [0,0,0,0,0,0]
-            result[1:,indexd,index]= [res1,res2,res3,res4,lifetime,(Node.get_Node().get_Battery().get_capacity_mAh())/(24*365*(Node.get_Node().get_Battery().get_i()))]
+            result[1:,indexd,index]= [res1,res2,res3,res4,lifetime,(Node.get_hardware().get_Battery().get_capacity_mAh())/(24*365*(Node.get_hardware().get_Battery().get_i()))]
     
     Task_tx.set_distance(d_initial)
     Node.change_task_rate(Task_tx,f_initial)
-    Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA )   
-    Node.get_Node().get_Battery().set_selfdischarge_p_year(rsd_init)  
+    Node.get_hardware().get_Battery().set_capacity_mAh( capa_1AA )   
+    Node.get_hardware().get_Battery().set_selfdischarge_p_year(rsd_init)  
     Footprint.battery[0]      = battery_footprint
 
     fig,ax = plt.subplots(1,1,figsize=figsize)
@@ -85,7 +85,7 @@ def lora_deployment_sweep_dnode  (Replacement_strategy = False,Footprint=None,No
     ax.set_yscale("log")
 
     
-    ax.set_title("Dnode : Time period: %d years, Fdata : %u/day, Rsd : %.1f %%"%(Nyears,Node.get_task_rate(Task_tx), Node.get_Node().get_Battery().get_selfdischarge_p_year()))
+    ax.set_title("Dnode : Time period: %d years, Fdata : %u/day, Rsd : %.1f %%"%(Nyears,Node.get_task_rate(Task_tx), Node.get_hardware().get_Battery().get_selfdischarge_p_year()))
     
     ax.tick_params(axis='x', labelsize = 12)
     if(filename != None):
@@ -99,8 +99,8 @@ def lora_deployment_sweep_fdata  (Replacement_strategy = False,Footprint=None,No
     
     f_initial = Node.get_task_rate(Task_tx)
     battery_footprint = Footprint.battery[0]
-    capa_1AA = Node.get_Node().get_Battery().get_capacity_mAh()
-    rsd_init = Node.get_Node().get_Battery().get_selfdischarge_p_year()
+    capa_1AA = Node.get_hardware().get_Battery().get_capacity_mAh()
+    rsd_init = Node.get_hardware().get_Battery().get_selfdischarge_p_year()
     dist_init = Task_tx.get_distance()
 
     Footprint.set_transport(dtrans,transport_model)
@@ -112,12 +112,12 @@ def lora_deployment_sweep_fdata  (Replacement_strategy = False,Footprint=None,No
         if paramType == "dnode":
             Task_tx.set_distance(value)
         elif paramType == "rsd":
-            Node.get_Node().get_Battery().set_selfdischarge_p_year(value)
+            Node.get_hardware().get_Battery().set_selfdischarge_p_year(value)
         elif paramType == "dtrans":
             Footprint.set_transport(value,transport_model)
 
         for indexAA,AA in enumerate(nAA):
-            Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA*AA )
+            Node.get_hardware().get_Battery().set_capacity_mAh( capa_1AA*AA )
             Footprint.battery[0]      = battery_footprint *AA
 
             for indexf,f in enumerate(fdata):
@@ -132,8 +132,8 @@ def lora_deployment_sweep_fdata  (Replacement_strategy = False,Footprint=None,No
 
     Node.change_task_rate(Task_tx,f_initial)
     Task_tx.set_distance(dist_init)
-    Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA )   
-    Node.get_Node().get_Battery().set_selfdischarge_p_year(rsd_init)  
+    Node.get_hardware().get_Battery().set_capacity_mAh( capa_1AA )   
+    Node.get_hardware().get_Battery().set_selfdischarge_p_year(rsd_init)  
     Footprint.battery[0]      = battery_footprint
 
     fig,ax = plt.subplots(1,1,figsize=figsize)
@@ -170,7 +170,7 @@ def lora_deployment_sweep_fdata  (Replacement_strategy = False,Footprint=None,No
     ax.vlines(1, ymin, ymax    , linestyle = "dashed", color = "black")
     ax.vlines(24, ymin, ymax   , linestyle = "dashed", color = "black")
     ax.vlines(24*12, ymin, ymax, linestyle = "dashed", color = "black")
-    ax.set_title("Fdata : Time period: %d years, Rsd : %.1f %%, Dtrans %u km"%(Nyears,Node.get_Node().get_Battery().get_selfdischarge_p_year(),dtrans))
+    ax.set_title("Fdata : Time period: %d years, Rsd : %.1f %%, Dtrans %u km"%(Nyears,Node.get_hardware().get_Battery().get_selfdischarge_p_year(),dtrans))
     
     ax.tick_params(axis='x', labelsize = 12)
     if(filename != None):

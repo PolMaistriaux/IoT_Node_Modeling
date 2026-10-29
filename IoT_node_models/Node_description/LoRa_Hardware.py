@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from Node_description.Wireless_communication   import LoRa_library as LoRa
 from Node_description.Wireless_communication   import Optimal_strategy as optStrat
-from Node_description.Node      import *
+from Node_description.Hardware      import *
 from Node_description.Task import *
 
 
@@ -24,7 +24,7 @@ from Node_description.Task import *
 #       * P_TX
 #       * Header
 ################################
-class LoRa_Node(Node):
+class LoRa_Hardware(Hardware):
     def __init__(self,name = "None", component_list=[], PMU_composition =[], Battery = None, radio_component = None): 
         super().__init__(name = name, component_list = component_list , PMU_composition = PMU_composition, Battery = Battery)
         self.radio_component      = radio_component

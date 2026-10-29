@@ -37,7 +37,7 @@ from IoT_node_models.Impact_model                        import *
 
 def sweep_dnode(Node, dmax, d_step ,nAA = [], Task_tx = None, PL_model=None, doPlot = False,filename =None,figsize=(7,6)):  
 
-    capa_1AA = Node.get_Node().get_Battery().get_capacity_mAh()
+    capa_1AA = Node.get_hardware().get_Battery().get_capacity_mAh()
 
     d_initial = Task_tx.get_distance()
     d= np.arange(10,dmax,d_step)
@@ -50,7 +50,7 @@ def sweep_dnode(Node, dmax, d_step ,nAA = [], Task_tx = None, PL_model=None, doP
     i = 0
     for indexAA, AA in  enumerate(nAA):
         for index,dist in enumerate(d):
-            Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA*AA )
+            Node.get_hardware().get_Battery().set_capacity_mAh( capa_1AA*AA )
             result[0,indexAA,index] = dist
             Task_tx.set_distance(dist)
             Node.compute()
@@ -65,7 +65,7 @@ def sweep_dnode(Node, dmax, d_step ,nAA = [], Task_tx = None, PL_model=None, doP
         i=1
 
 
-    Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA ) 
+    Node.get_hardware().get_Battery().set_capacity_mAh( capa_1AA ) 
     Task_tx.set_distance(d_initial)
 
     fig,ax = plt.subplots(1,1,figsize=figsize)
@@ -92,7 +92,7 @@ def sweep_dnode(Node, dmax, d_step ,nAA = [], Task_tx = None, PL_model=None, doP
     ax.set_ylim( ymin= 0, ymax =ax_ylim )
     ax2.set_ylim(ymin= 0, ymax =ax2_ylim)
     ax2.legend()
-    ax.set_title("Dnode and Ebatt : self-discharge rate = %.1f %%"%(Node.get_Node().get_Battery().get_selfdischarge_p_year()))
+    ax.set_title("Dnode and Ebatt : self-discharge rate = %.1f %%"%(Node.get_hardware().get_Battery().get_selfdischarge_p_year()))
 
     #ax2.vlines(np.array(SF_change) /1000,ymin = ax2_ylim*0.1, ymax = ax2_ylim    , color = "red" ,  linestyle = "dashed")
     #ax2.vlines(np.array(Ptx_change)/1000,ymin = 0           , ymax = ax2_ylim*0.9, color = "black", linestyle = "dashed")
@@ -107,22 +107,22 @@ def sweep_fdata(Node, fmax, f_step, Task_tx = None,nAA=[],d = 1000, doPlot = Fal
     if Task_tx == None :
         print("No task tx specified")
         return
-    capa_1AA = Node.get_Node().get_Battery().get_capacity_mAh()
-    f_initial = Node.get_task_rate(Task_tx)
+    capa_1AA = Node.get_hardware().get_Battery().get_capacity_mAh()
+    f_initial = Node.profile.get_task_rate(Task_tx)
     fdata= np.arange(1,fmax,f_step)
     result = np.zeros((4,len(nAA),len(fdata)))
 
     for indexAA, AA in  enumerate(nAA):
         for index,f in enumerate(fdata):
             result[0,indexAA,index] = f
-            Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA*AA )
-            Node.change_task_rate(Task_tx,f)
+            Node.get_hardware().get_Battery().set_capacity_mAh( capa_1AA*AA )
+            Node.profile.change_task_rate(Task_tx,f)
             Node.compute()
             result[1:3,indexAA,index]= [Node.average_power,Node.lifetime] 
-            result[3,indexAA,index]=(Node.get_Node().get_Battery().get_capacity_mAh())/(24*365*(Node.get_Node().get_Battery().get_i()))
+            result[3,indexAA,index]=(Node.get_hardware().get_Battery().get_capacity_mAh())/(24*365*(Node.get_hardware().get_Battery().get_i()))
 
-    Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA )
-    Node.change_task_rate(Task_tx,f_initial)
+    Node.get_hardware().get_Battery().set_capacity_mAh( capa_1AA )
+    Node.profile.change_task_rate(Task_tx,f_initial)
 
     fig,ax = plt.subplots(1,1)
     ax.set_xlabel("Transmission rate [$msg/day$]")
@@ -148,7 +148,7 @@ def sweep_fdata(Node, fmax, f_step, Task_tx = None,nAA=[],d = 1000, doPlot = Fal
     ax.set_ylim(ymin= 0,  ymax =np.max(result[2,:,:])*1.1 )
     ax2.set_ylim(ymin= 0, ymax =np.max(result[1,:,:])*1100 )
 
-    ax.set_title("Fdata and Ebatt : self-discharge rate = %.1f %% \n dnode = %.1f m"%(Node.get_Node().get_Battery().get_selfdischarge_p_year(),d))
+    ax.set_title("Fdata and Ebatt : self-discharge rate = %.1f %% \n dnode = %.1f m"%(Node.get_hardware().get_Battery().get_selfdischarge_p_year(),d))
 
     if(filename != None):
         to_save= filename+".svg"
@@ -159,9 +159,9 @@ def sweep_fdata(Node, fmax, f_step, Task_tx = None,nAA=[],d = 1000, doPlot = Fal
 
 def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA=[], Task_tx = None, PL_model=None ,filename =None,figsize=(7,6)):  
 
-    f_initial = Node.get_task_rate(Task_tx)
+    f_initial = Node.profile.get_task_rate(Task_tx)
     d_initial = Task_tx.get_distance()
-    capa_1AA = Node.get_Node().get_Battery().get_capacity_mAh()
+    capa_1AA = Node.get_hardware().get_Battery().get_capacity_mAh()
 
     d= np.arange(dmin,dmax+d_step,d_step)
     result_fdata = np.zeros((3,len(fdata),len(d)))
@@ -173,7 +173,7 @@ def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA
     i = 0
     for indexf, f in  enumerate(fdata):
         Task_tx.task_rate = f
-        Node.change_task_rate(Task_tx,f)
+        Node.profile.change_task_rate(Task_tx,f)
         for index,dist in enumerate(d):
             result_fdata[0,indexf,index] = dist
             Task_tx.set_distance(dist)
@@ -189,23 +189,23 @@ def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA
         i=1
 
     #Task_tx.task_rate = f_batt 
-    Node.change_task_rate(Task_tx,f_batt)
+    Node.profile.change_task_rate(Task_tx,f_batt)
 
     result_nAA  = np.zeros((4,len(nAA),len(d)))
     for indexAA, AA in  enumerate(nAA):
-        Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA*AA )
+        Node.get_hardware().get_Battery().set_capacity_mAh( capa_1AA*AA )
         for index,dist in enumerate(d):
             result_nAA[0,indexAA,index] = dist
             Task_tx.set_distance(dist)
             Node.compute()
             result_nAA[1:3,indexAA,index]= [Node.average_power,Node.lifetime] 
-            result_nAA[3,indexAA,index]=(Node.get_Node().get_Battery().get_capacity_mAh())/(24*365*(Node.get_Node().get_Battery().get_i()))
+            result_nAA[3,indexAA,index]=(Node.get_hardware().get_Battery().get_capacity_mAh())/(24*365*(Node.get_hardware().get_Battery().get_i()))
 
     #Task_tx.task_rate = f_initial 
-    Node.change_task_rate(Task_tx,f_initial)
+    Node.profile.change_task_rate(Task_tx,f_initial)
     Task_tx.set_distance(d_initial)
     Node.compute()
-    Node.get_Node().get_Battery().set_capacity_mAh( capa_1AA )
+    Node.get_hardware().get_Battery().set_capacity_mAh( capa_1AA )
 
     fig,ax = plt.subplots(2,1,figsize=figsize)
     ax[1].set_xlabel("Distance [$m$]", fontsize = 14)
@@ -237,7 +237,7 @@ def sweep_dnode_fdata_Ebatt(Node,dmin, dmax, d_step ,f_batt = 24, fdata = [],nAA
     ax[1].set_xlim(xmin = dmin, xmax = dmax )
     ax[0].set_xlim(xmin = dmin, xmax = dmax )
     #ax.legend()
-    fig.suptitle("dnode for fdata and ebatt : self-discharge rate = %.1f %%"%(Node.get_Node().get_Battery().get_selfdischarge_p_year()))
+    fig.suptitle("dnode for fdata and ebatt : self-discharge rate = %.1f %%"%(Node.get_hardware().get_Battery().get_selfdischarge_p_year()))
 
     #ax.vlines(np.array(SF_change) /1000,ymin = ax2_ylim*0.1, ymax = ax2_ylim    , color = "red" ,  linestyle = "dashed")
     #ax.vlines(np.array(Ptx_change)/1000,ymin = 0           , ymax = ax2_ylim*0.9, color = "black", linestyle = "dashed")
