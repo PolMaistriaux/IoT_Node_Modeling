@@ -154,20 +154,22 @@ class Node_description:
         indexModuleSleep = []
         for component in self.hardware.get_component_list() :
             component_label.append(component.get_name())
-            indexModuleSleep.append(j)
-            for state in component.state_list:
-                component_task_energy.append(state.get_energy())
-                component_task_label.append(state.get_name())
-                component_task_t_active.append(state.get_activeTime())
-                colors_component_task.append(colors[i])  
-                j=j+1
-            if component.get_i_sleep() > 0:
-                component_task_energy.append(component.sleep_state.get_energy())
-                component_task_label.append(component.sleep_state.get_name())
-                component_task_t_active.append(component.sleep_state.get_activeTime())
-                colors_component_task.append(colors[i])  
-                j=j+1
-            i=i+1 
+            
+            if component.state_list and component.sleep_state.get_i() > 0:
+                indexModuleSleep.append(j)
+                for state in component.state_list:
+                    component_task_energy.append(state.get_energy())
+                    component_task_label.append(state.get_name())
+                    component_task_t_active.append(state.get_activeTime())
+                    colors_component_task.append(colors[i])  
+                    j=j+1
+                if component.get_i_sleep() > 0:
+                    component_task_energy.append(component.sleep_state.get_energy())
+                    component_task_label.append(component.sleep_state.get_name())
+                    component_task_t_active.append(component.sleep_state.get_activeTime())
+                    colors_component_task.append(colors[i])  
+                    j=j+1
+                i=i+1 
  
         labels1 = [('{}'+'\n'*int(100*b>7)+'({:.1f}%)').format(a,100*b)*int(100*b>0.5) for a,b in zip(component_task_label,np.asarray(component_task_energy)/self.energy)]
         patches1, texts1 = ax[1].pie(component_task_energy, labels = labels1, 

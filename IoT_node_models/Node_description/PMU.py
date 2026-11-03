@@ -5,7 +5,7 @@ from Node_description.Footprint import *
 
 ################################
 class PMU:
-    def __init__(self,name = "None", v_out = 0, v_in = 0, component_list = [], factors=None): # constructor
+    def __init__(self,name = "None", v_out = 0, v_in = 0, component_list = [], factors=None, category=None): # constructor
         self.name           = name
         self.v_out          = v_out
         self.v_in           = v_in
@@ -19,7 +19,7 @@ class PMU:
         if factors is not None and not isinstance(factors, FootprintVector):
             raise TypeError("factors must be an ImpactVector or None")
         self.factors = factors
-    
+        self.category = category
 
     def compute(self):
         self.i_out          = 0
@@ -46,9 +46,9 @@ class PMU:
 
 ################################
 class LDO(PMU):
-    def __init__(self,name = "None", v_out = 0, i_q = 0, v_in = 0, component_list = [], factors=None): # constructor
+    def __init__(self,name = "None", v_out = 0, i_q = 0, v_in = 0, component_list = [], factors=None, category=None): # constructor
         self.i_q            = i_q
-        super().__init__(name = name, v_out = v_out,  v_in = v_in, component_list = component_list, factors=factors)
+        super().__init__(name = name, v_out = v_out,  v_in = v_in, component_list = component_list, factors=factors, category=category)
 
     def compute(self):
         self.i_out          = 0

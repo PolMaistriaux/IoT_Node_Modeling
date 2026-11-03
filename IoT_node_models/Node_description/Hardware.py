@@ -8,6 +8,14 @@ from Node_description.Battery           import *
 from Node_description.PMU               import *
 
 
+UNCATEGORIZED = "Uncategorized"
+
+
+def _fmt(row):
+    """Format a (low, mid, high) row: single value if fixed, else [lo, mid, hi]."""
+    lo, mid, hi = row
+    return f"{mid:.4g}" if lo == mid == hi else f"[{lo:.3g}, {mid:.3g}, {hi:.3g}]"
+
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -20,7 +28,7 @@ from Node_description.PMU               import *
 #   -t_active_day : overall time spent in active (not in sleep state) during the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Hardware:
-    def __init__(self,name = "None", footprintStructure=None): # constructor
+    def __init__(self,name = "None", footprintStructure=None, categories=()): # constructor
         self.name = name
         self.energy = 0
         self.average_power = 0
@@ -33,6 +41,15 @@ class Hardware:
         self.lifetime = 0 
 
         self.footprintStructure=footprintStructure
+
+        categories = tuple(categories)
+        if len(set(categories)) != len(categories):
+            raise ValueError("Duplicate category labels")
+        self.categories = categories
+        self.footprint_by_category         = None  # {category: FootprintVector}
+        self.footprint_total               = None  # FootprintVector
+        self.footprint_by_category_samples = None  # {category: ndarray (n_labels, n)}
+        self.footprint_total_samples       = None  # ndarray (n_labels, n)
 
         
         
@@ -58,7 +75,12 @@ class Hardware:
                 raise ValueError(f"{Component_instance.name}: has impact factors but node has no structure")
             if Component_instance.factors.structure is not self.footprintStructure:
                 raise ValueError(f"{Component_instance.name}: structure mismatch with node")
-            
+        
+        if Component_instance.category is not None and Component_instance.category not in self.categories:
+            raise ValueError(f"{Component_instance.name}: category {Component_instance.category} not in node categories {self.categories}")
+  
+        self._invalidate_footprint()
+
         if isinstance(Component_instance, Battery):
             self.add_Battery(Component_instance)
         elif isinstance(Component_instance, PMU):
@@ -68,6 +90,22 @@ class Hardware:
             self.isPowered = False
         else :
             raise Exception("Error : Component is not of type Component, PMU or Battery, type is %s"%type(Component_instance))
+
+
+    def _invalidate_footprint(self):
+        self.footprint_by_category = self.footprint_total = None
+        self.footprint_by_category_samples = self.footprint_total_samples = None
+
+    @property
+    def active_categories(self):
+        """Declared categories, plus UNCATEGORIZED only if some component uses it."""
+        cats = list(self.categories)
+        if any(c.category is None for c in self.component_list):
+            cats.append(UNCATEGORIZED)
+        return tuple(cats)
+
+    def _category_of(self, comp):
+        return comp.category if comp.category is not None else UNCATEGORIZED
 
     def get_component_list(self):
         return self.component_list
@@ -137,6 +175,51 @@ class Hardware:
             if verbose:
                 print('Node is not powered, no lifetime can be computed')
 
+
+    # --- deterministic (bounds) -------------------------------------------
+    def compute_footprint(self, verbose=True):
+        """Compute per-category footprint, then the total. Stores and returns the total."""
+        if self.footprintStructure is None:
+            self.footprint_by_category = self.footprint_total = None
+            if verbose:
+                print("No footprint structure defined: not modeled.")
+            return None
+
+        by_cat = {cat: self.footprintStructure.zeros() for cat in self.active_categories}
+        for c in self.component_list:
+            if c.factors is not None:
+                cat = self._category_of(c)
+                by_cat[cat] = by_cat[cat] + c.factors
+
+        self.footprint_by_category = by_cat
+        self.footprint_total = sum(by_cat.values(), self.footprintStructure.zeros())
+        return self.footprint_total
+
+    
+    def report_footprint(self):
+        print("No footprint schema defined.")
+
+        headers = ["Category"] + [
+            f"{l} [{u}]" if u else l for l, u in zip(self.footprintStructure.labels, self.footprintStructure.units)
+        ]
+        rows = [[cat] + [_fmt(r) for r in v.data] for cat, v in self.footprint_by_category.items()]
+        total_row = ["Total"] + [_fmt(r) for r in self.footprint_total.data]
+
+        widths = [max(len(str(x)) for x in col) for col in zip(headers, *rows, total_row)]
+        line = lambda cells: "  ".join(str(c).ljust(w) for c, w in zip(cells, widths))
+        sep = "  ".join("-" * w for w in widths)
+
+        out = [line(headers), sep, *(line(r) for r in rows), sep, line(total_row)]
+        print("\n".join(out))
+
+    def footprint_category_array(self, which="mid"):
+        """(categories, array of shape (n_categories, n_labels)) for plotting."""
+        if self.by_category is None:
+            self.compute(verbose=False)
+        col = {"low": LOW, "mid": MID, "high": HIGH}[which]
+        cats = list(self.by_category)
+        return cats, np.array([self.by_category[c].data[:, col] for c in cats])
+    
     def print_components(self):
         sum_energy = 0
         print("-----------------------------------------------------------------")
@@ -198,6 +281,5 @@ class Hardware:
                             raise Exception("Error : component registered multiples in a PMU or in multiple PMUs")
                 except:
                     raise Exception("Error : PMU component_list is not properly defined")
-            if found != 1:
-                raise Exception("Error : component %s has no PMU"%component.get_name())
+                
         return 

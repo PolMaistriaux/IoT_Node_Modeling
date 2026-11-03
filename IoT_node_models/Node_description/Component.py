@@ -8,7 +8,6 @@ from Node_description.State     import *
 from Node_description.Footprint import *
 
 
-
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Given component of the node described by:
 #   -Current consumption in sleep mode
@@ -19,7 +18,7 @@ from Node_description.Footprint import *
 #   -t_active_day : overall time spent in active (not in sleep state) during the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Component:
-    def __init__(self,name = "None", v=0, i_sleep =0, factors=None): # constructor
+    def __init__(self,name = "None", v=0, i_sleep =0, factors=None, category=None): # constructor
         self.name          = name
         self.i_sleep       = i_sleep
         self.v             = v
@@ -34,6 +33,8 @@ class Component:
         if factors is not None and not isinstance(factors, FootprintVector):
             raise TypeError("factors must be an ImpactVector or None")
         self.factors = factors
+
+        self.category = category 
     
     def get_energy(self):
         return self.energy
@@ -76,7 +77,7 @@ class Component:
         self.energy                   = 0
         self.sleep_state.reset_state()
 
-        if not self.state_list and self.sleep_state.get_i() > 0:
+        if not self.state_list and self.sleep_state.get_i() == 0:
             return 0
 
         ########################################################

@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     footprintStructure = FootprintStructure(("GWP", "Money"))
 
-    RX_component_3V3 = Component(name="LoRa radio",
+    RX_component_3V3 = Component(name="LoRa radio",category = "IC",
                             v=3.3,
                             i_sleep=6e-3,
                             factors = footprintStructure.vector(GWP=1.2, Money=0.02))
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     RX_component_3V3.add_state(RX_state_RX_3V3)
 
 
-    bme_component_3V3   = Component(name="this_BME680",
+    bme_component_3V3   = Component(name="this_BME680",category = "IC",
                                 v=BME_voltage_3V3,
                                 i_sleep=BME_sleepCur_3V3)
     bme_state_T_3V3    = State("T", i = T_activCur_3V3,   duration = T_duration)
@@ -68,26 +68,29 @@ if __name__ == '__main__':
     bme_component_3V3.add_state(bme_state_TPH_3V3)
     bme_component_3V3.add_state(bme_state_TPHG_3V3)
 
-    MCU_component_3V3 = Component(name="Apollo3",
+    MCU_component_3V3 = Component(name="Apollo3",category = "IC",
                                 v      =3.3,
                                 i_sleep=0.005,
                             factors = footprintStructure.vector(GWP=1))
     
     MCU_state_active_3V3  = State("Active",i = 5,duration = None)
     MCU_component_3V3.add_state(MCU_state_active_3V3)
-
+    
     component_List = [RX_component_3V3,MCU_component_3V3, bme_component_3V3]
 
-    this_LDO = LDO(name = "Node LDO", v_out = 3.3, i_q = 1e-3, v_in = 3.3, component_list = component_List)
+    this_LDO = LDO(name = "Node LDO", category = "PMU", v_out = 3.3, i_q = 1e-3, v_in = 3.3, component_list = component_List)
     
-    this_Batt= Battery(name = "Node Batt.", v = 3.3, capacity_mAh = 1800, i = 0, selfdischarge_p_year = 5)
+    this_Batt= Battery(name = "Node Batt.", category = "Battery", v = 3.3, capacity_mAh = 1800, i = 0, selfdischarge_p_year = 5)
 
-    this_hw = Hardware(name= "IoT Node",footprintStructure=footprintStructure)
+    this_hw = Hardware(name= "IoT Node",footprintStructure=footprintStructure, categories=("IC","PMU","Battery","Casing"))
     for comp in component_List:
         this_hw.add(comp)
     this_hw.add(this_LDO)
     this_hw.add(this_Batt)
-            
+
+    
+    Casing = Component(name="Casing", category = "Casing",factors = footprintStructure.vector(GWP=0.5, Money=0.3))
+    this_hw.add(Casing)     
     
     this_profile= LoRa_Profile("Profile", this_hw,  RX_state=RX_state_TX_3V3,TX_state=RX_state_TX_3V3,
                         P_TX= PTX_PABOOST_3V3, I_TX=I_PABoost_3V3 ) 
@@ -115,4 +118,6 @@ if __name__ == '__main__':
     this_node.print_tasks()
     this_node.print_components()
     this_node.plot_power()
+    this_hw.compute_footprint()
+    this_hw.report_footprint()
     plt.show()
