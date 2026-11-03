@@ -4,7 +4,8 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from Node_description.State import *
+from Node_description.State     import *
+from Node_description.Footprint import *
 
 
 
@@ -18,18 +19,21 @@ from Node_description.State import *
 #   -t_active_day : overall time spent in active (not in sleep state) during the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Component:
-    def __init__(self,name = "None", v=0, i_sleep =0): # constructor
+    def __init__(self,name = "None", v=0, i_sleep =0, factors=None): # constructor
         self.name          = name
         self.i_sleep       = i_sleep
         self.v             = v
         self.state_list    = []
         self.sleep_state   = State("Sleep",v = v, i = i_sleep, duration = None)
-        self.state_list.append(self.sleep_state)
         # Result of the model computation
         self.energy          = 0
         self.average_power   = 0
         self.average_current = 0
         self.t_active        = 0
+
+        if factors is not None and not isinstance(factors, FootprintVector):
+            raise TypeError("factors must be an ImpactVector or None")
+        self.factors = factors
     
     def get_energy(self):
         return self.energy
@@ -71,6 +75,9 @@ class Component:
         # Do not reset the t_active of each component state, as they have been update by the tasks
         self.energy                   = 0
         self.sleep_state.reset_state()
+
+        if not self.state_list and self.sleep_state.get_i() > 0:
+            return 0
 
         ########################################################
         # 2 ) For each component state, compute the energy spent

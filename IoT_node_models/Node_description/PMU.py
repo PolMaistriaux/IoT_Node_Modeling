@@ -1,10 +1,11 @@
 #%%
 
 from Node_description.Component import *
+from Node_description.Footprint import *
 
 ################################
 class PMU:
-    def __init__(self,name = "None", v_out = 0, v_in = 0, component_list = []): # constructor
+    def __init__(self,name = "None", v_out = 0, v_in = 0, component_list = [], factors=None): # constructor
         self.name           = name
         self.v_out          = v_out
         self.v_in           = v_in
@@ -14,6 +15,11 @@ class PMU:
         for component in self.component_list:
             if component.get_v() != v_out:
                 raise Exception("Module connected to PMU with Vout %.1f as a power supply specified at %.1f"%(self.v_out,component._get_v()))
+
+        if factors is not None and not isinstance(factors, FootprintVector):
+            raise TypeError("factors must be an ImpactVector or None")
+        self.factors = factors
+    
 
     def compute(self):
         self.i_out          = 0
@@ -40,9 +46,9 @@ class PMU:
 
 ################################
 class LDO(PMU):
-    def __init__(self,name = "None", v_out = 0, i_q = 0, v_in = 0, component_list = []): # constructor
+    def __init__(self,name = "None", v_out = 0, i_q = 0, v_in = 0, component_list = [], factors=None): # constructor
         self.i_q            = i_q
-        super().__init__(name = name, v_out = v_out,  v_in = v_in, component_list = component_list)
+        super().__init__(name = name, v_out = v_out,  v_in = v_in, component_list = component_list, factors=factors)
 
     def compute(self):
         self.i_out          = 0

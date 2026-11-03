@@ -8,13 +8,11 @@ import os
 try :
     from Node_description.Wireless_communication    import LoRa_library as LoRa
     from Node_description.Wireless_communication    import Optimal_strategy as optStrat
-    from IoT_node_models.Node_description.LoRa_Hardware        import *
     from Node_description.Profile     import *
     from Node_description.Transceiver_task import *
 except : 
     from Wireless_communication    import LoRa_library     as LoRa
     from Wireless_communication    import Optimal_strategy as optStrat
-    from IoT_node_models.Node_description.LoRa_Hardware        import *
     from Profile     import *
     from Transceiver_task import *
 

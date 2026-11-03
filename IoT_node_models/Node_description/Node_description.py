@@ -32,7 +32,7 @@ from MyColors           import *
 #   -energy_day    : energy consumed over the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Node_description:
-    def __init__(self,name = "None",hardware = None, profile=None, time_window=(24*60*60)): # constructor
+    def __init__(self,name = "None",hardware = None, profile=None,  time_window=(24*60*60)): # constructor
         self.name           = name
         self.hardware       = hardware
         self.profile        = profile
@@ -159,6 +159,12 @@ class Node_description:
                 component_task_energy.append(state.get_energy())
                 component_task_label.append(state.get_name())
                 component_task_t_active.append(state.get_activeTime())
+                colors_component_task.append(colors[i])  
+                j=j+1
+            if component.get_i_sleep() > 0:
+                component_task_energy.append(component.sleep_state.get_energy())
+                component_task_label.append(component.sleep_state.get_name())
+                component_task_t_active.append(component.sleep_state.get_activeTime())
                 colors_component_task.append(colors[i])  
                 j=j+1
             i=i+1 

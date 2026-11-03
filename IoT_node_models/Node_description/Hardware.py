@@ -20,20 +20,55 @@ from Node_description.PMU               import *
 #   -t_active_day : overall time spent in active (not in sleep state) during the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Hardware:
-    def __init__(self,name = "None", component_list=[], PMU_composition =[], Battery = None): # constructor
+    def __init__(self,name = "None", footprintStructure=None): # constructor
         self.name = name
         self.energy = 0
         self.average_power = 0
-        self.component_list = component_list
+        self.component_list = []
 
         # Powered node
         self.isPowered = False
-        self.PMU_composition = PMU_composition
-        self.Battery = Battery
+        self.PMU_composition = []
+        self.Battery = None
         self.lifetime = 0 
-        if not self.check_correctness() :
-            return
+
+        self.footprintStructure=footprintStructure
+
+        
+        
+    def add_Battery(self, Battery_instance):
+        if self.Battery is not None:
+            print("Warning : Battery already specified : replacing it")
+        self.Battery = Battery_instance
+
+        if self.PMU_composition:
+            for PMU in self.PMU_composition:
+                if (PMU.v_in != self.Battery.v):
+                    raise Exception("Error : PMU supply voltage is different from battery voltage")
+
+    def add_PMU(self, PMU_instance):
+        if self.Battery is not None:
+            if (PMU_instance.v_in != self.Battery.v):
+                raise Exception("Error : PMU supply voltage is different from battery voltage")
+        self.PMU_composition.append(PMU_instance)
     
+    def add (self, Component_instance):
+        if Component_instance.factors is not None:
+            if self.footprintStructure is None:
+                raise ValueError(f"{Component_instance.name}: has impact factors but node has no structure")
+            if Component_instance.factors.structure is not self.footprintStructure:
+                raise ValueError(f"{Component_instance.name}: structure mismatch with node")
+            
+        if isinstance(Component_instance, Battery):
+            self.add_Battery(Component_instance)
+        elif isinstance(Component_instance, PMU):
+            self.add_PMU(Component_instance)
+        elif isinstance(Component_instance, Component):
+            self.component_list.append(Component_instance)
+            self.isPowered = False
+        else :
+            raise Exception("Error : Component is not of type Component, PMU or Battery, type is %s"%type(Component_instance))
+
     def get_component_list(self):
         return self.component_list
     
@@ -74,6 +109,8 @@ class Hardware:
 
 
     def compute(self, time_window, verbose = False):
+        
+        self.check_correctness()
         #################################################################################
         #  For each component, compute the energy it consumes over a single day
         #################################################################################
@@ -95,7 +132,10 @@ class Hardware:
             self.lifetime =self.Battery.get_lifetime()
             if verbose:
                 print('Node lifetime is %.1f years. Average current drawn from battery : %.3f [mA]'%(self.Battery.get_lifetime(), self.Battery.get_i() ))
-
+        else:
+            self.lifetime = 0
+            if verbose:
+                print('Node is not powered, no lifetime can be computed')
 
     def print_components(self):
         sum_energy = 0
@@ -108,6 +148,9 @@ class Hardware:
             for state in component.state_list:
                 sum_energy = sum_energy + state.get_energy()
                 print ("{:<12} {:<12} {:<12.4f} {:<12.4f} ".format("     -",state.get_name(),state.get_activeTime(),state.get_energy()))
+            if component.get_i_sleep() > 0:
+                sum_energy = sum_energy + component.sleep_state.get_energy()
+                print ("{:<12} {:<12} {:<12.4f} {:<12.4f} ".format("     -",component.sleep_state.get_name(),component.sleep_state.get_activeTime(),component.sleep_state.get_energy()))
         print("-----------------------------------------------------------------")      
         print ("{:<12} {:<12} {:<12} {:<12.4f}  {:<6.4f}  {:<4} ".format("Total"," "," ",sum_energy,self.average_power,"[mW]"))
         print("-----------------------------------------------------------------")
@@ -124,33 +167,37 @@ class Hardware:
 
 
     def check_correctness(self):
-        if not self.PMU_composition and self.Battery == None:
-            print("Warning : Node is considered not powered")
-            self.isPowered = False
-            return False
-        elif not self.PMU_composition or self.Battery == None:
-            raise Exception("Error : : PMU_composition is empty or Battery not specified")
-            return False
         
         self.isPowered = True
 
+        if not self.PMU_composition:
+            print("Warning : No PMU in node")
+            self.isPowered = False
+            
+        if self.Battery == None:
+            print("Warning : No Battery in node")
+
+        if not self.component_list:
+            print("Warning : No component in node")
+            self.isPowered = False
+
+        if self.isPowered is False:
+            return 
+        
         for component in self.component_list:
             found = 0
             for PMU in self.PMU_composition:
                 if (PMU.v_in != self.Battery.v):
                     print("Error : PMU supply voltage is different from battery voltage")
-                    return False
+                    self.isPowered = False
                 try:
                     for PMU_component in PMU.component_list:
                         if PMU_component == component :
                             found = 1
                         if found>1:
                             raise Exception("Error : component registered multiples in a PMU or in multiple PMUs")
-                            return False
                 except:
                     raise Exception("Error : PMU component_list is not properly defined")
-                    return False
             if found != 1:
                 raise Exception("Error : component %s has no PMU"%component.get_name())
-                return False
-        return True
+        return 

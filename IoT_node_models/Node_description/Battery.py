@@ -1,19 +1,24 @@
 #%%
 
 from Node_description.Component import *
+from Node_description.Footprint import *
 
 ################################
 
 
 class Battery:
-    def __init__(self,name = "None", v = 0, capacity_mAh = 0, i = 1, selfdischarge_p_year = 0): # constructor
+    def __init__(self,name = "None", v = 0, capacity_mAh = 0, i = 1, selfdischarge_p_year = 0, factors=None): # constructor
         self.name           = name
         self.v              = v
         self.capacity_mAh   = capacity_mAh
         self.i              = i
         self.selfdischarge_p_year      = selfdischarge_p_year
         self.lifetime = 0
-        
+
+        if factors is not None and not isinstance(factors, FootprintVector):
+            raise TypeError("factors must be an ImpactVector or None")
+        self.factors = factors
+    
 
     def compute(self):
 
