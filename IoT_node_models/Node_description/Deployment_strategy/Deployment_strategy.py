@@ -18,9 +18,12 @@ class DeploymentStrategy:
     def __init__(self, Nyears=10, replacementCategories=None):
         if Nyears <= 0:
             raise ValueError("Nyears must be positive")
+        if replacementCategories is not None :
+            if not isinstance(replacementCategories, tuple):
+                raise TypeError("replacementCategories must be a tuple of strings or None")
+            
         self.Nyears = Nyears
-        self.ReplacementStrategy = replacementCategories 
-
+        self.ReplacementStrategy = replacementCategories
         self.placement       = None
         self.decom           = None
         self.replacement     = None

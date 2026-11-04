@@ -2,10 +2,11 @@
 import numpy as np
 from matplotlib import patches as mpatches
 
-
 from .Hardware.Component import *
 from .Profile.Task   import *
 from .Hardware        import *
+from .Deployment_strategy        import *
+
 
 
 import sys
@@ -29,7 +30,7 @@ from ..MyColors           import *
 #   -energy_day    : energy consumed over the day
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Node_description:
-    def __init__(self,name = "None",hardware = None, profile=None,  time_window=(24*60*60)): # constructor
+    def __init__(self,name = "None",hardware = None, profile=None,deployment_strategy=None,  time_window=(24*60*60)): # constructor
         self.name           = name
         self.hardware       = hardware
         self.profile        = profile
@@ -39,6 +40,8 @@ class Node_description:
         self.lifetime       = 0
         self.sleep_energy   = 0
         self.sleep_task     = Sleep_Task(components = hardware.get_component_list())
+
+        self.deployment_strategy = deployment_strategy if deployment_strategy is not None else DeploymentStrategy()
 
     def reset_node(self):
         self.energy        = 0
@@ -82,9 +85,17 @@ class Node_description:
         
         self.average_power= self.energy/(self.time_window)
         self.lifetime = self.hardware.get_lifetime()
-        return self.energy
 
-
+        
+        #################################################################################
+        # 5 ) Calculate footprint of node deployment
+        #################################################################################
+        if self.hardware.compute_footprint() is not None:
+            self.deployment_strategy.compute_footprint(self.hardware, self.lifetime)
+        
+    
+    def set_deployment_strategy(self, deployment_strategy):
+        self.deployment_strategy = deployment_strategy
 
     def get_hardware(self):
             return self.hardware
