@@ -1,7 +1,7 @@
 #%%
 
-from Node_description.Component import *
-from Node_description.Footprint import *
+from .Component import *
+from .Footprint import *
 
 ################################
 

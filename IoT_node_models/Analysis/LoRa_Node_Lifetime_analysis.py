@@ -23,15 +23,12 @@ pio.renderers.default = "svg"
 
 import sys
 import os
-parent_directory = os.path.dirname(os.getcwd())
-sys.path.append(parent_directory)
 #sys.path.append(os.path.dirname(parent_directory))
 #sys.path.append(os.path.dirname(os.path.dirname(parent_directory)))
 
-from IoT_node_models.Node_description                        import *
-from IoT_node_models.Node_description.Wireless_communication import *
-from IoT_node_models.Component_set                    import *
-from IoT_node_models.Impact_model                        import *
+from ..Node_description                        import *
+from ..Node_description.Profile.Wireless_communication import *
+from ..Component_set                    import *
 
 
 

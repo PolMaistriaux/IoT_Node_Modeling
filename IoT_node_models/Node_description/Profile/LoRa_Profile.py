@@ -5,16 +5,10 @@ import numpy as np
 import sys
 import os
 
-try :
-    from Node_description.Wireless_communication    import LoRa_library as LoRa
-    from Node_description.Wireless_communication    import Optimal_strategy as optStrat
-    from Node_description.Profile     import *
-    from Node_description.Transceiver_task import *
-except : 
-    from Wireless_communication    import LoRa_library     as LoRa
-    from Wireless_communication    import Optimal_strategy as optStrat
-    from Profile     import *
-    from Transceiver_task import *
+from .Wireless_communication    import LoRa_library as LoRa
+from .Wireless_communication    import Optimal_strategy as optStrat
+from .Profile     import *
+from .Transceiver_task import *
 
 
 ################################

@@ -1,7 +1,7 @@
 
 
 
-from Node_description.Action import *
+from .Action import *
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Given task of the node described by:

@@ -4,12 +4,11 @@ import numpy as np
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from Node_description.Wireless_communication   import LoRa_library as LoRa
-from Node_description.Wireless_communication   import Optimal_strategy as optStrat
-from Node_description.Hardware      import *
-from Node_description.Task import *
+from .Wireless_communication   import LoRa_library as LoRa
+from .Wireless_communication   import Optimal_strategy as optStrat
+from ..Hardware      import *
+from .Task import *
 
 
 
@@ -21,12 +20,11 @@ import numpy as np
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from Node_description.Wireless_communication   import LoRa_library as LoRa
-from Node_description.Wireless_communication   import Optimal_strategy as optStrat
-from Node_description.Hardware      import *
-from Node_description.Task import *
+from .Wireless_communication   import LoRa_library as LoRa
+from .Wireless_communication   import Optimal_strategy as optStrat
+from ..Hardware      import *
+from .Task import *
 
 
 

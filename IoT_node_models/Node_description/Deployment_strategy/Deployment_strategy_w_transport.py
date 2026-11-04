@@ -1,12 +1,11 @@
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import math
 import numpy as np
 
-from Node_description.Deployment_strategy import *
+from .Deployment_strategy import *
 
 
 ####################################################

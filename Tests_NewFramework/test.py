@@ -23,13 +23,10 @@ pio.renderers.default = "svg"
 
 import sys
 import os
-parent_directory = os.path.dirname(os.getcwd())
+parent_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_directory)
 
-from IoT_node_models.Node_description                        import *
-from IoT_node_models.Node_description.Wireless_communication import *
-from IoT_node_models.Component_set                    import *
-from IoT_node_models.Analysis                            import *
+from IoT_node_models import *
 
 path_to_save_svg = "Saved_Data"
 

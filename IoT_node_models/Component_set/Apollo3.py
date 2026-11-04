@@ -1,9 +1,8 @@
 import numpy as np
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Node_description'))
 
-from Node_description.Profile import *
+from ..Node_description import *
 
 #MCU : Apollo3
     #6 µA/MHz executing from FLASH or RAM at 3.3 V

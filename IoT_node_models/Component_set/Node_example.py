@@ -1,12 +1,11 @@
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Node_description'))
 
-from Node_description.Profile import *
-from Component_set.Apollo3  import *
-from Component_set.RFM95    import *
-from Component_set.BME680   import *
+from ..Node_description import *
+from .Apollo3  import *
+from .RFM95    import *
+from .BME680   import *
 
 
 

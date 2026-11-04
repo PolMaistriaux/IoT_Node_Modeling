@@ -3,15 +3,14 @@ import numpy as np
 from matplotlib import patches as mpatches
 
 
-from Node_description.Component import *
-from Node_description.Task   import *
-from Node_description.Hardware        import *
+from .Hardware.Component import *
+from .Profile.Task   import *
+from .Hardware        import *
 
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from MyColors           import *
+from ..MyColors           import *
 
 ###################################################################################################
 # INFORMATION

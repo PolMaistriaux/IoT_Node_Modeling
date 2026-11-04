@@ -1,12 +1,11 @@
 #%%
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from Node_description.State import *
-from Node_description.Battery           import *
-from Node_description.PMU               import *
-from MyColors           import *
+from .State import *
+from .Battery           import *
+from .PMU               import *
+from ...MyColors           import *
 
 
 UNCATEGORIZED = "Uncategorized"
@@ -217,7 +216,6 @@ class Hardware:
 
     
     def report_footprint(self):
-        print("No footprint schema defined.")
 
         headers = ["Category"] + [
             f"{l} [{u}]" if u else l for l, u in zip(self.footprintStructure.labels, self.footprintStructure.units)

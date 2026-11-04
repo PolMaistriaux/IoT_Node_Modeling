@@ -1,9 +1,8 @@
 import numpy as np
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Node_description'))
 
-from Node_description.Profile import *
+from ..Node_description import *
 
 #BME680 no AI: AVERAGE POWER
 BME_sleepCur_3V3 = 0.15e-3 #with EVB     0.032796386921874914 
