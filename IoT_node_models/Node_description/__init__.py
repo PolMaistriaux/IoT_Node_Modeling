@@ -9,6 +9,8 @@ from .PMU                  import  *
 from .Transceiver_task     import  *
 from .Profile         import  *
 from .LoRa_Profile    import  *
+from .Deployment_strategy import *
+from .Deployment_strategy_w_transport import *
 from .Node_description import *
 
 from . import Wireless_communication
