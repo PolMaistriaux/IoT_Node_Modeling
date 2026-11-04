@@ -6,9 +6,24 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from Node_description.State import *
 from Node_description.Battery           import *
 from Node_description.PMU               import *
+from MyColors           import *
 
 
 UNCATEGORIZED = "Uncategorized"
+
+DEFAULT_CATEGORIES = (
+    "Casing",            
+    "Connectivity",      
+    "EoL",               
+    "Memory",            
+    "Others",            
+    "PCB",               
+    "Power_supply",      
+    "Processing",        
+    "Sensing",           
+    "UI",                
+    "Battery"    
+)
 
 
 def _fmt(row):
@@ -96,11 +111,16 @@ class Hardware:
         self.footprint_by_category = self.footprint_total = None
         self.footprint_by_category_samples = self.footprint_total_samples = None
 
+    def _footprint_components(self):
+        """Everything that carries a footprint: components, PMUs and the battery."""
+        battery = [self.Battery] if self.Battery is not None else []
+        return self.component_list + self.PMU_composition + battery
+
     @property
     def active_categories(self):
         """Declared categories, plus UNCATEGORIZED only if some component uses it."""
         cats = list(self.categories)
-        if any(c.category is None for c in self.component_list):
+        if any(c.category is None for c in self._footprint_components()):
             cats.append(UNCATEGORIZED)
         return tuple(cats)
 
@@ -186,7 +206,7 @@ class Hardware:
             return None
 
         by_cat = {cat: self.footprintStructure.zeros() for cat in self.active_categories}
-        for c in self.component_list:
+        for c in self._footprint_components():
             if c.factors is not None:
                 cat = self._category_of(c)
                 by_cat[cat] = by_cat[cat] + c.factors
@@ -219,7 +239,96 @@ class Hardware:
         col = {"low": LOW, "mid": MID, "high": HIGH}[which]
         cats = list(self.by_category)
         return cats, np.array([self.by_category[c].data[:, col] for c in cats])
-    
+
+    def plot_footprint(self, label=None, filename=None, figsize=(7,6), separatePlot=False):
+        """Bar per category (sorted, total last) for one impact label, with low/high as error bars.
+        label defaults to the first impact label. separatePlot crops the first figure to the
+        categories and adds a second figure zoomed on the top of the total bar."""
+        if self.compute_footprint() is None:
+            return
+
+        labels = self.footprintStructure.labels
+        label  = labels[0] if label is None else label
+        unit   = self.footprintStructure.units[labels.index(label)]
+        ylabel = f"{label} [{unit}]" if unit else label
+
+        # Categories without any impact are not displayed
+        rows = [(cat, *v[label]) for cat, v in self.footprint_by_category.items() if any(v[label])]
+        if not rows:
+            print(f"No {label} footprint to plot.")
+            return
+        rows.sort(key=lambda row: row[2])
+
+        total_low, total, total_high = self.footprint_total[label]
+        battery     = 0
+        battery_cat = None
+        if self.Battery is not None:
+            battery_cat = self.Battery.category
+            if self.Battery.factors is not None:
+                battery = self.Battery.factors[label][MID]
+
+        barWidth    = 0.6
+        xlabel      = [row[0] for row in rows] + ["Total"]
+        height_low  = np.array([row[1] for row in rows] + [total_low])
+        height      = np.array([row[2] for row in rows] + [total])
+        height_high = np.array([row[3] for row in rows] + [total_high])
+        color       = [dictColor["Sandy"] if cat == battery_cat else dictColor["CarolinaBlue"] for cat in xlabel]
+
+        if separatePlot:
+            ax_y_fig_span = np.max(height_high[:-1])*1.3
+        else:
+            ax_y_fig_span = np.max(height_high)*1.3
+        ax_y_max = np.max(height)*1.02
+
+        height_e_up = height_high - height
+        height_e_do = height - height_low
+
+        fig,ax = plt.subplots(1,1,figsize=figsize)
+
+        bar1 = ax.bar(xlabel,
+                height = height, width =barWidth,
+                yerr = [height_e_do,height_e_up],color = color, capsize=5,edgecolor = "black")
+        # Battery share of the total bar
+        ax.bar(xlabel[-1:],
+                height = [battery], width =barWidth,
+                color = dictColor["Sandy"],edgecolor = "black")
+
+        ax.set_ylabel(ylabel)
+        ax.set_ylim(ymin = 0, ymax = ax_y_fig_span)
+        ax.tick_params(axis='x', labelrotation= 45 )
+        plt.setp(ax.get_xticklabels(), ha='right')
+
+        for rect in bar1:
+            rect_height = rect.get_height()
+            ax.text(rect.get_x() + rect.get_width()/2, rect_height, f'{(100*rect_height/total):.1f}%',fontsize = 13, ha='right', va='bottom',clip_on=True)
+        if battery > 0:
+            rect = bar1[-1]
+            side_x = rect.get_x() + rect.get_width()*1.1
+            ax.text(side_x, (battery + min(total,ax_y_fig_span))/2, f'{(100*(total-battery)/total):.1f}%',fontsize = 13, ha='left', va='center',rotation = -90)
+            ax.text(side_x, battery/2, f'{(100*battery/total):.1f}%',fontsize = 13, ha='left', va='center',rotation = -90)
+
+        fig.tight_layout()
+        if(filename != None):
+            to_save = filename+".svg"
+            fig.savefig(to_save, format="svg")
+
+        ####################################################
+        if separatePlot:
+            fig,ax = plt.subplots(1,1,figsize=figsize)
+
+            ax.bar(xlabel,
+                    height = height, width =barWidth,
+                    color = color, capsize=5,edgecolor = "black")
+
+            ax.set_ylabel(ylabel)
+            ax.set_ylim(ymin = max(0,ax_y_max-ax_y_fig_span), ymax = ax_y_max)
+            ax.tick_params(axis='x', labelrotation= 45 )
+            plt.setp(ax.get_xticklabels(), ha='right')
+            fig.tight_layout()
+            if(filename != None):
+                to_save = filename+"2.svg"
+                fig.savefig(to_save, format="svg")
+
     def print_components(self):
         sum_energy = 0
         print("-----------------------------------------------------------------")

@@ -38,12 +38,12 @@ path_to_save_svg = "Saved_Data"
 if __name__ == '__main__':
 
 
-    footprintStructure = FootprintStructure(("GWP", "Money"))
+    footprintStructure = FootprintStructure(("GWP", "Money"), units=("$kgCO_2 eq.$", "EUR"))
 
-    RX_component_3V3 = Component(name="LoRa radio",category = "IC",
+    RX_component_3V3 = Component(name="LoRa radio",category = "Connectivity",
                             v=3.3,
                             i_sleep=6e-3,
-                            factors = footprintStructure.vector(GWP=1.2, Money=0.02))
+                            factors = footprintStructure.vector(GWP=(0.2262, 0.517, 0.5817), Money=5.3))   # SX1276 : 5.3
     
     RX_state_TX_3V3 = State("TX",i = 52,duration = None)
     RX_state_RX_3V3 = State("RX",i = 22,duration = None)
@@ -51,9 +51,10 @@ if __name__ == '__main__':
     RX_component_3V3.add_state(RX_state_RX_3V3)
 
 
-    bme_component_3V3   = Component(name="this_BME680",category = "IC",
+    bme_component_3V3   = Component(name="this_BME680",category = "Sensing",
                                 v=BME_voltage_3V3,
-                                i_sleep=BME_sleepCur_3V3)
+                                i_sleep=BME_sleepCur_3V3,
+                                factors = footprintStructure.vector(GWP=(0.0539, 0.0539, 0.5561), Money=6.94))   # BME680 : 6.94
     bme_state_T_3V3    = State("T", i = T_activCur_3V3,   duration = T_duration)
     bme_state_P_3V3    = State("P", i = P_activCur_3V3,   duration = P_duration)
     bme_state_H_3V3    = State("H", i = H_activCur_3V3,   duration = H_duration)
@@ -68,29 +69,41 @@ if __name__ == '__main__':
     bme_component_3V3.add_state(bme_state_TPH_3V3)
     bme_component_3V3.add_state(bme_state_TPHG_3V3)
 
-    MCU_component_3V3 = Component(name="Apollo3",category = "IC",
+    MCU_component_3V3 = Component(name="Apollo3",category = "Processing",
                                 v      =3.3,
                                 i_sleep=0.005,
-                            factors = footprintStructure.vector(GWP=1))
+                                factors = footprintStructure.vector(GWP=(0.366, 0.366, 0.4537), Money=3.65))   # Apollo3: 3.65
     
     MCU_state_active_3V3  = State("Active",i = 5,duration = None)
     MCU_component_3V3.add_state(MCU_state_active_3V3)
     
     component_List = [RX_component_3V3,MCU_component_3V3, bme_component_3V3]
 
-    this_LDO = LDO(name = "Node LDO", category = "PMU", v_out = 3.3, i_q = 1e-3, v_in = 3.3, component_list = component_List)
-    
-    this_Batt= Battery(name = "Node Batt.", category = "Battery", v = 3.3, capacity_mAh = 1800, i = 0, selfdischarge_p_year = 5)
+    AA_series = 3
+    AA_footprint = 0.165
+    AA_cost      = 0.25
+    Batt_footprint = AA_series*AA_footprint
+    Batt_cost      = AA_series*AA_cost
 
-    this_hw = Hardware(name= "IoT Node",footprintStructure=footprintStructure, categories=("IC","PMU","Battery","Casing"))
+    # Footprint factors: GWP is (low, mid, high), Money is a fixed value
+    this_LDO = LDO(name = "Node LDO", category = "Power_supply", v_out = 3.3, i_q = 1e-3, v_in = 3.3, component_list = component_List,
+                   factors = footprintStructure.vector(GWP=(0.0446, 0.132, 0.1751), Money=0.228))     # XC6206 : 0.228 + Diode and Transistor?
+
+    this_Batt= Battery(name = "Node Batt.", category = "Battery", v = 3.3, capacity_mAh = 1800, i = 0, selfdischarge_p_year = 5,
+                       factors = footprintStructure.vector(GWP=Batt_footprint, Money=Batt_cost))
+
+    this_hw = Hardware(name= "IoT Node",footprintStructure=footprintStructure, categories=DEFAULT_CATEGORIES)
     for comp in component_List:
         this_hw.add(comp)
     this_hw.add(this_LDO)
     this_hw.add(this_Batt)
 
-    
-    Casing = Component(name="Casing", category = "Casing",factors = footprintStructure.vector(GWP=0.5, Money=0.3))
-    this_hw.add(Casing)     
+    # Components without an electrical model, only carrying a footprint
+    this_hw.add(Component(name="Casing", category="Casing",   factors=footprintStructure.vector(GWP=(0.3932, 0.709,  1.3259), Money=10)))
+    this_hw.add(Component(name="EoL",    category="EoL",      factors=footprintStructure.vector(GWP=(0.0388, 0.0812, 0.1201), Money=0)))
+    this_hw.add(Component(name="Others", category="Others",   factors=footprintStructure.vector(GWP=(0.0546, 0.0938, 0.1394), Money=1.42)))
+    this_hw.add(Component(name="PCB",    category="PCB",      factors=footprintStructure.vector(GWP=(0.9403, 1.17,   1.5696), Money=1.17)))
+    this_hw.add(Component(name="UI",     category="UI",       factors=footprintStructure.vector(GWP=(0.0017, 0.0306, 0.1155), Money=0.54)))
     
     this_profile= LoRa_Profile("Profile", this_hw,  RX_state=RX_state_TX_3V3,TX_state=RX_state_TX_3V3,
                         P_TX= PTX_PABOOST_3V3, I_TX=I_PABoost_3V3 ) 
@@ -120,4 +133,6 @@ if __name__ == '__main__':
     this_node.plot_power()
     this_hw.compute_footprint()
     this_hw.report_footprint()
+    this_hw.plot_footprint(label="GWP")
+    
     plt.show()

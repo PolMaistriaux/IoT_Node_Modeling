@@ -30,9 +30,7 @@ class Component:
         self.average_current = 0
         self.t_active        = 0
 
-        if factors is not None and not isinstance(factors, FootprintVector):
-            raise TypeError("factors must be an ImpactVector or None")
-        self.factors = factors
+        self.set_factors(factors)
 
         self.category = category 
     
@@ -66,8 +64,12 @@ class Component:
     
     def set_name(self, name):
         self.name = name
-    
-        
+
+    def set_factors(self, factors):
+        if factors is not None and not isinstance(factors, FootprintVector):
+            raise TypeError("factors must be an ImpactVector or None")
+        self.factors = factors
+
     def compute_energy(self, time_window):
         time = time_window
         ##############################################
