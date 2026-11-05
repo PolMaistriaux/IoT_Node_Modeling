@@ -77,6 +77,7 @@ class DeploymentStrategy_wTransport(DeploymentStrategy):
                 self.overhead_replacement = self.transport_replacement.footprint(hardware.footprintStructure)
             else:
                 self.overhead_replacement = self.transport_replacement
+            footprint = footprint + self.overhead_replacement
         return footprint
 
     def decom_footprint(self, hardware):

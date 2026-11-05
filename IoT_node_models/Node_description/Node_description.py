@@ -196,6 +196,132 @@ class Node_description:
             plt.savefig(filename+".svg", format="svg")
 
 
+    def plot_footprint(self, label=None, filename=None, figsize=(14, 6)):
+        """Hardware-category bars on the left + deployment-phase bars on the right.
+
+        The right section shows placement, a single replacement, cumulated replacements and
+        decommissioning as stacked bars split between hardware (blue) and overhead such as
+        transport (sandy).  A shared y-axis links both halves."""
+        if self.hardware.compute_footprint() is None:
+            return
+        if self.deployment_strategy.placement is None:
+            print("No deployment footprint computed. Call compute() first.")
+            return
+
+        labels = self.hardware.footprintStructure.labels
+        label  = labels[0] if label is None else label
+        unit   = self.hardware.footprintStructure.units[labels.index(label)]
+        ylabel = f"{label} [{unit}]" if unit else label
+
+        # ---- Hardware section (mirrors hardware.plot_footprint) ----------------
+        rows = [(cat, *v[label]) for cat, v in self.hardware.footprint_by_category.items() if any(v[label])]
+        if not rows:
+            print(f"No {label} footprint to plot.")
+            return
+        rows.sort(key=lambda row: row[2])
+
+        total_low, total, total_high = self.hardware.footprint_total[label]
+        battery = 0
+        battery_cat = None
+        if self.hardware.Battery is not None:
+            battery_cat = self.hardware.Battery.category
+            if self.hardware.Battery.factors is not None:
+                battery = self.hardware.Battery.factors[label][MID]
+
+        hw_cats  = [row[0] for row in rows] + ["HW Total"]
+        hw_low   = np.array([row[1] for row in rows] + [total_low])
+        hw_mid   = np.array([row[2] for row in rows] + [total])
+        hw_high  = np.array([row[3] for row in rows] + [total_high])
+        hw_color = [dictColor["UnitedBlue"] if cat == battery_cat else dictColor["CarolinaBlue"] for cat in hw_cats]
+
+        # ---- Deployment section ------------------------------------------------
+        def _mid(fp, lbl):
+            return fp[lbl][MID] if isinstance(fp, FootprintVector) else 0.0
+        def _low(fp, lbl):
+            return fp[lbl][LOW] if isinstance(fp, FootprintVector) else 0.0
+        def _high(fp, lbl):
+            return fp[lbl][HIGH] if isinstance(fp, FootprintVector) else 0.0
+
+        ds = self.deployment_strategy
+        n  = ds.n_replacements
+
+        # per-phase: total, hardware share, overhead share
+        phases = [
+            ("Placement",             ds.placement,            ds.overhead_placement),
+            (f"1 Replacement",        ds.replacement,          ds.overhead_replacement),
+            (f"Cumul. Replacements\n(×{n:.4g})",
+                                      ds.replacement * n,      ds.overhead_replacement if not isinstance(ds.overhead_replacement, FootprintVector) else ds.overhead_replacement * n),
+            ("Decommissioning",       ds.decom,                ds.overhead_decom),
+        ]
+
+        dep_labels  = [p[0] for p in phases]
+        dep_hw_mid  = np.array([_mid(p[1] , label) - _mid(p[2], label) for p in phases])
+        dep_oh_mid  = np.array([_mid(p[2] , label)                     for p in phases])
+        dep_low     = np.array([_low(p[1] , label)                     for p in phases])
+        dep_high    = np.array([_high(p[1], label)                     for p in phases])
+        dep_total   = dep_hw_mid + dep_oh_mid
+
+        # ---- Figure ------------------------------------------------------------
+        barWidth = 0.6
+        ratio    = [max(len(hw_cats), 1), max(len(dep_labels), 1)]
+        fig, (ax_hw, ax_dep) = plt.subplots(
+            1, 2, figsize=figsize,
+            gridspec_kw={"width_ratios": ratio, "wspace": 0.04},
+        )
+
+        all_max = max(np.max(hw_high), np.max(dep_high) if dep_high.size else 0) * 1.3
+        if all_max == 0:
+            all_max = 1
+
+        # --- left panel: hardware categories ---
+        hw_e_up  = hw_high - hw_mid
+        hw_e_do  = hw_mid  - hw_low
+        bars_hw  = ax_hw.bar(hw_cats, height=hw_mid, width=barWidth,
+                             yerr=[hw_e_do, hw_e_up], color=hw_color, capsize=5, edgecolor="black")
+        ax_hw.bar(hw_cats[-1:], height=[battery], width=barWidth,
+                  color=dictColor["UnitedBlue"], edgecolor="black")
+        ax_hw.set_ylabel(ylabel)
+        ax_hw.set_ylim(0, all_max)
+        ax_hw.tick_params(axis='x', labelrotation=45)
+        plt.setp(ax_hw.get_xticklabels(), ha='right')
+        ax_hw.set_title("Hardware")
+        for rect in bars_hw:
+            h = rect.get_height()
+            if h > 0 and total > 0:
+                ax_hw.text(rect.get_x() + rect.get_width() / 2, h,
+                           f'{100*h/total:.1f}%', fontsize=10, ha='right', va='bottom', clip_on=True)
+        if battery > 0:
+            rect   = bars_hw[-1]
+            side_x = rect.get_x() + rect.get_width() * 1.1
+            ax_hw.text(side_x, (battery + min(total, all_max)) / 2,
+                       f'{100*(total-battery)/total:.1f}%', fontsize=10, ha='left', va='center', rotation=-90)
+            ax_hw.text(side_x, battery / 2,
+                       f'{100*battery/total:.1f}%',         fontsize=10, ha='left', va='center', rotation=-90)
+
+        # vertical separator: thicken adjacent spines
+        ax_hw.spines['right'].set_linewidth(2)
+        ax_dep.spines['left'].set_linewidth(2)
+
+        # --- right panel: deployment phases ---
+        bars_dep_hw = ax_dep.bar(dep_labels, height=dep_hw_mid, width=barWidth,
+                                  color=dictColor["CerulBlue"], edgecolor="black", label="Hardware")
+        bars_dep_oh = ax_dep.bar(dep_labels, height=dep_oh_mid, bottom=dep_hw_mid, width=barWidth,
+                                  color=dictColor["Olivine"], edgecolor="black", label="Overhead")
+        dep_e_up = np.maximum(dep_high - dep_total, 0)
+        dep_e_do = np.maximum(dep_total - dep_low,  0)
+        ax_dep.errorbar(np.arange(len(dep_labels)), dep_total,
+                        yerr=[dep_e_do, dep_e_up], fmt='none', color='black', capsize=5)
+        ax_dep.set_ylim(0, all_max)
+        ax_dep.set_yticklabels([])
+        ax_dep.tick_params(axis='x', labelrotation=45)
+        plt.setp(ax_dep.get_xticklabels(), ha='right')
+        ax_dep.set_title(f"Deployment ({ds.Nyears} yr)")
+        ax_dep.legend(fontsize=10, loc="upper left")
+
+        fig.tight_layout()
+        if filename is not None:
+            fig.savefig(filename + ".svg", format="svg")
+
     def print_tasks(self):
         self.profile.print_tasks(additional_tasks=[self.sleep_task], additional_task_rates=[1])
 
