@@ -69,4 +69,35 @@ class State:
     def set_duration(self, duration):
         self.duration = duration
 
-    
+
+
+
+
+
+class Digital_Processing_State(State):
+    def __init__(self,name = "None", i_per_MHz=0, freq_MHz=0, v=0, cycle=None): # constructor
+        self.freq_MHz     = freq_MHz
+        self.i_per_MHz = i_per_MHz
+        super().__init__(name = name, i=i_per_MHz*freq_MHz, v=v, duration= cycle/(freq_MHz*1e6) if cycle is not None else None)
+
+
+    def set_i_per_MHz (self, i_per_MHz):
+        self.i_per_MHz = i_per_MHz
+        self.i = self.i_per_MHz*self.freq_MHz
+
+    def set_freq_MHz (self, freq_MHz):
+        self.freq_MHz = freq_MHz
+        self.i = self.i_per_MHz*self.freq_MHz
+
+    def set_cycle (self, cycle):
+        self.cycle = cycle
+        self.duration = self.cycle/(self.freq_MHz*1e6)
+
+    def get_i_per_MHz (self):
+        return self.i_per_MHz
+
+    def get_freq_MHz (self):
+        return self.freq_MHz
+
+    def get_cycle (self):
+        return self.cycle
