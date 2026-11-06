@@ -53,7 +53,11 @@ class Component:
     
     def get_name(self):
         return self.name
-    
+
+    def search_state_name(self,name):
+        for state in self.state_list:
+            if state.name == name:
+                return state
 
     def set_i_sleep (self, i_sleep):
         self.i_sleep = i_sleep

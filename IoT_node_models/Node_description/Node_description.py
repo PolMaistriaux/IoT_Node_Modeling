@@ -161,9 +161,9 @@ class Node_description:
         j=0
         indexModuleSleep = []
         for component in self.hardware.get_component_list() :
-            component_label.append(component.get_name())
             
-            if component.state_list and component.sleep_state.get_i() > 0:
+            if component.state_list and component.energy > 0:
+                component_label.append(component.get_name())
                 indexModuleSleep.append(j)
                 for state in component.state_list:
                     component_task_energy.append(state.get_energy())

@@ -32,10 +32,8 @@ MCU_Apollo3_CFemb  = MCU_Apollo3_mm2 * kgCO2_p_mm2_n40
     #6 µA/MHz executing from FLASH or RAM at 3.3 V
     #1 µA deep sleep mode (BLE in shutdown) with RTC at 3.3 V
 
-MCU_Apollo3_state_active_1V8  = Digital_Processing_State("Active"      ,i_per_MHz = 0.018,freq_MHz=Base_MCU_Clock_freq,cycle = None)
-MCU_Apollo3_state_active_3V3  = Digital_Processing_State("Active"      ,i_per_MHz = 0.010,freq_MHz=Base_MCU_Clock_freq,cycle = None)
+MCU_Apollo3_state_active  = Digital_Processing_State("Active"      ,i_per_MHz = {1.8 : 0.018, 3.3 : 0.010},freq_MHz=Base_MCU_Clock_freq,cycle = None)
 
-MCU_Apollo3_component.add_state(MCU_Apollo3_state_active_1V8)
 MCU_Apollo3_component.add_state(MCU_Apollo3_state_active)
 
 ###############################################
@@ -69,3 +67,20 @@ MCU_nRF52840_CFemb = MCU_nRF52840_mm2 * (kgCO2_p_mm2_n65+kgCO2_p_mm2_n45)/2
 MCU_nRF52840_state_active  = Digital_Processing_State("Active"      ,i_per_MHz = (6.3/64),freq_MHz=Base_MCU_Clock_freq,cycle = None) # Assuming the LDO
 
 MCU_nRF52840_component.add_state(MCU_nRF52840_state_active)
+
+############################
+# MCU registry
+############################
+
+MCU_components = {
+    "Apollo3": MCU_Apollo3_component,
+    "STM32L4": MCU_STM32L4_component,
+    "nRF52840": MCU_nRF52840_component,
+}
+
+MCU_CFemb = {
+    "Apollo3": MCU_Apollo3_CFemb,
+    "STM32L4": MCU_STM32L4_CFemb,
+    "nRF52840": MCU_nRF52840_CFemb,
+}
+
