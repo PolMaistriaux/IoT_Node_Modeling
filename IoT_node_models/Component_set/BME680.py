@@ -52,7 +52,7 @@ MCU_BME_TPH      = 158.7e-3
 ############################
 #3.3V
 ############################
-bme_component_3V3   = Component(name="BME680",
+bme_component_3V3   = Component(name="BME680",category="Sensing",
                             v=BME_voltage_3V3,
                             i_sleep=BME_sleepCur_3V3)
 bme_state_T_3V3    = State("T", i = T_activCur_3V3,   duration = T_duration)
@@ -72,7 +72,7 @@ bme_component_3V3.add_state(bme_state_TPHG_3V3)
 ############################
 #1.8V
 ############################
-bme_component_1V8   = Component(name="BME680",
+bme_component_1V8   = Component(name="BME680",category="Sensing",
                             v=BME_voltage_1V8,
                             i_sleep=BME_sleepCur_1V8)
 bme_state_T_1V8    = State("T", i = T_activCur_1V8,   duration = T_duration)
@@ -92,7 +92,7 @@ bme_component_1V8.add_state(bme_state_TPHG_1V8)
 ############################
 #3.3V from datasheet
 ############################
-bme_component_Data  = Component(name="BME680",
+bme_component_Data  = Component(name="BME680",category="Sensing",
                             v=BME_voltage_3V3,
                             i_sleep=BME_sleepCur_Data)
 bme_state_TPHG_Data = State("TPHG",i = TPHG_activCur_Data,duration = TPHG_duration_Data)

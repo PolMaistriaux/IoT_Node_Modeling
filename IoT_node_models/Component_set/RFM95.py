@@ -42,7 +42,7 @@ MCU_RFM_duration = 0.20496384+0.10125312
 #3.3V
 ############################
 
-radio_component_3V3 = Component(name="LoRa radio",
+radio_component_3V3 = Component(name="LoRa radio",category="Connectivity",
                             v=3.3,
                             i_sleep=I_Sleep_3V3)
 radio_state_TX_3V3 = State("TX",i = I_TX_3V3,duration = None)
@@ -54,7 +54,7 @@ radio_component_3V3.add_state(radio_state_RX_3V3)
 #1.8V
 ############################
 
-radio_component_1V8 = Component(name="LoRa radio",
+radio_component_1V8 = Component(name="LoRa radio",category="Connectivity",
                             v=1.8,
                             i_sleep=I_Sleep_1V8)
 radio_state_TX_1V8 = State("TX",i = I_TX_1V8,duration = None)
@@ -65,7 +65,7 @@ radio_component_1V8.add_state(radio_state_RX_1V8)
 ############################
 #3.3V from datasheet
 ############################
-radio_component_Data = Component(name="LoRa radio",
+radio_component_Data = Component(name="LoRa radio",category="Connectivity",
                             v=3.3,
                             i_sleep=I_Sleep_Data)
 radio_state_TX_Data = State("TX",i = I_TX_3V3,duration = None)

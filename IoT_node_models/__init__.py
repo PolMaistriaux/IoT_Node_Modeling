@@ -11,6 +11,7 @@ for _name in [m for m in _sys.modules if m.startswith(_prefix)]:
 from . import MyColors
 from . import Node_description
 from . import Component_set
+from . import Analysis
 
 # Flat namespace: `from IoT_node_models import *` gives the whole API.
 # Note that this makes IoT_node_models.Node_description the class, not the subpackage
@@ -19,3 +20,4 @@ from .MyColors                                     import *
 from .Node_description                             import *
 from .Node_description.Profile.Wireless_communication import *
 from .Component_set                                import *
+from .Analysis                                     import *

@@ -2,10 +2,10 @@
 import sys
 import os
 
-from .State import *
+from .State             import *
 from .Battery           import *
 from .PMU               import *
-from ...MyColors           import *
+from ...MyColors        import *
 
 
 UNCATEGORIZED = "Uncategorized"
@@ -105,6 +105,7 @@ class Hardware:
         else :
             raise Exception("Error : Component is not of type Component, PMU or Battery, type is %s"%type(Component_instance))
 
+        return Component_instance
 
     def _invalidate_footprint(self):
         self.footprint_by_category = self.footprint_total = None

@@ -15,7 +15,7 @@ import numpy as np
 #   -n_replacements                 : number of replacements over Nyears
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class DeploymentStrategy:
-    def __init__(self, Nyears=10, replacementCategories=None):
+    def __init__(self, Nyears=10, replacementCategories=None, smooth_replacement_footprint = False):
         if Nyears <= 0:
             raise ValueError("Nyears must be positive")
         if replacementCategories is not None :
@@ -33,6 +33,9 @@ class DeploymentStrategy:
         self.overhead_replacement    = 0
 
         self.n_replacements  = 0
+        self.smooth_replacement_footprint=smooth_replacement_footprint
+
+        self.total_footprint = None
 
     def placement_footprint(self, hardware):
         self.overhead_placement = 0
@@ -57,7 +60,7 @@ class DeploymentStrategy:
         self.overhead_decom = 0
         return hardware.footprintStructure.zeros()
 
-    def compute_footprint(self, hardware, lifetime,smooth=False):
+    def compute_footprint(self, hardware, lifetime):
         """Total footprint of covering Nyears with nodes of the given lifetime [years]:
         placement + replacements + decommissioning."""
         if lifetime <= 0:
@@ -66,12 +69,14 @@ class DeploymentStrategy:
             raise ValueError("Hardware has no footprint structure: nothing to deploy")
 
         # A replacement is only needed when the service outlasts the node
-        if smooth:
+        if self.smooth_replacement_footprint:
             self.n_replacements = max(           (self.Nyears / lifetime)  - 1 , 0)
         else:    
             self.n_replacements = max(int(np.ceil(self.Nyears / lifetime)) - 1, 0)
 
-        self.placement    = self.placement_footprint(hardware)
-        self.decom        = self.decom_footprint(hardware)
-        self.replacement  = self.replacement_footprint(hardware)
-        return self.placement + (self.replacement * self.n_replacements) + self.decom
+        self.placement       = self.placement_footprint(hardware)
+        self.decom           = self.decom_footprint(hardware)
+        self.replacement     = self.replacement_footprint(hardware)
+        self.cum_replacement = (self.replacement * self.n_replacements)
+        self.total_footprint  = self.placement + self.cum_replacement + self.decom
+        return self.total_footprint

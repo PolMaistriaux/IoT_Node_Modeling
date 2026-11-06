@@ -16,9 +16,8 @@ class PMU:
             if component.get_v() != v_out:
                 raise Exception("Module connected to PMU with Vout %.1f as a power supply specified at %.1f"%(self.v_out,component._get_v()))
 
-        if factors is not None and not isinstance(factors, FootprintVector):
-            raise TypeError("factors must be an ImpactVector or None")
-        self.factors = factors
+        self.set_factors(factors)
+        
         self.category = category
 
     def compute(self):
@@ -28,6 +27,11 @@ class PMU:
         self.i_in = self.i_out 
         
     
+    def set_factors(self, factors):
+        if factors is not None and not isinstance(factors, FootprintVector):
+            raise TypeError("factors must be an ImpactVector or None")
+        self.factors = factors
+
     def get_i_in(self):
         return self.i_in
     

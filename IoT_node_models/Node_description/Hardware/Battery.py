@@ -16,9 +16,7 @@ class Battery:
         self.category = category
         self.lifetime = 0
 
-        if factors is not None and not isinstance(factors, FootprintVector):
-            raise TypeError("factors must be an ImpactVector or None")
-        self.factors = factors
+        self.set_factors(factors)
     
 
     def compute(self):
@@ -46,6 +44,11 @@ class Battery:
         return self.lifetime
     
     
+    def set_factors(self, factors):
+        if factors is not None and not isinstance(factors, FootprintVector):
+            raise TypeError("factors must be an ImpactVector or None")
+        self.factors = factors
+
     def set_i(self, i):
         self.i = i
 

@@ -26,9 +26,9 @@ MCU_voltage_Data   = 3.3
 #3.3V 
 ############################
 
-apollo_component_3V3 = Component(name="Apollo3",
+apollo_component_3V3 = Component(name="Apollo3",category="Processing",
                             v      =MCU_voltage_3V3,
-                            i_sleep=MCU_sleepCur_3V3)
+                            i_sleep=MCU_sleepCur_3V3 )
 apollo_state_active_3V3  = State("Active",i = MCU_activCur_3V3,duration = None)
 apollo_component_3V3.add_state(apollo_state_active_3V3)
 
@@ -36,7 +36,7 @@ apollo_component_3V3.add_state(apollo_state_active_3V3)
 #1.8V
 ############################
 
-apollo_component_1V8 = Component(name="Apollo3",
+apollo_component_1V8 = Component(name="Apollo3",category="Processing",
                             v      =MCU_voltage_1V8,
                             i_sleep=MCU_sleepCur_1V8)
 apollo_state_active_1V8  = State("Active",i = MCU_activCur_1V8,duration = None)
@@ -46,7 +46,7 @@ apollo_component_1V8.add_state(apollo_state_active_1V8)
 #3.3V from datasheet
 ############################
 
-apollo_component_Data = Component(name="Apollo3",
+apollo_component_Data = Component(name="Apollo3",category="Processing",
                             v      =MCU_voltage_3V3,
                             i_sleep=MCU_sleepCur_Data)
 apollo_state_active_Data  = State("Active",i = MCU_activCur_Data,duration = None)

@@ -16,6 +16,7 @@ def transport_footprint(km_p_node = 10,km_fixed=5, type ="Unit", n_node = 1,foot
         print("Error in type specification for transport footprint calculation")
 
 
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # One transport trip, described by:
 #   -km_fixed        : distance of the trip shared by the n_node nodes handled together
@@ -44,7 +45,13 @@ class Transport:
         return (f"Transport(km_fixed={self.km_fixed}, km_p_node={self.km_p_node}, "
                 f"n_node={self.n_node}, footprint_p_km={self.footprint_p_km})")
 
+class Dum_Transport(Transport): # To match the model used in the one of the IoT 22 paper
 
+    def __init__(self, km_fixed=1, km_p_node=1, n_node=1, footprint_p_km=0.350, label="GWP"):
+        super().__init__(km_fixed=km_fixed, km_p_node=km_p_node, n_node=n_node, footprint_p_km=footprint_p_km, label=label)
+
+    def F_trans(self, label):
+       return (self.km_p_node+2*self.km_fixed)* self.footprint_p_km[label] / self.n_node
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Deployment strategy where each phase has its own transport (or None for no transport):
 #   -transport_placement   : once, when the node is placed
@@ -54,8 +61,8 @@ class Transport:
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class DeploymentStrategy_wTransport(DeploymentStrategy):
     def __init__(self, Nyears=10, replacementCategories=None,
-                 transport_placement=None, transport_replacement=None, transport_decom=None):
-        super().__init__(Nyears=Nyears, replacementCategories=replacementCategories)
+                 transport_placement=None, transport_replacement=None, transport_decom=None,smooth_replacement_footprint=False):
+        super().__init__(Nyears=Nyears, replacementCategories=replacementCategories,smooth_replacement_footprint=smooth_replacement_footprint)
         self.transport_placement   = transport_placement
         self.transport_replacement = transport_replacement
         self.transport_decom       = transport_decom

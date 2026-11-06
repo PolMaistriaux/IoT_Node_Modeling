@@ -119,6 +119,7 @@ class Profile:
 
         else :
             print_list=self.task_list
+            task_rates =self.task_rate_list
             energy = self.energy
 
         print("-------------------------------------------------")

@@ -196,7 +196,7 @@ class Node_description:
             plt.savefig(filename+".svg", format="svg")
 
 
-    def plot_footprint(self, label=None, filename=None, figsize=(14, 6)):
+    def plot_footprint(self, label=None, cumulated_replacement=False, filename=None, figsize=(14, 6)):
         """Hardware-category bars on the left + deployment-phase bars on the right.
 
         The right section shows placement, a single replacement, cumulated replacements and
@@ -246,13 +246,20 @@ class Node_description:
         n  = ds.n_replacements
 
         # per-phase: total, hardware share, overhead share
-        phases = [
-            ("Placement",             ds.placement,            ds.overhead_placement),
-            (f"1 Replacement",        ds.replacement,          ds.overhead_replacement),
-            (f"Cumul. Replacements\n(×{n:.4g})",
-                                      ds.replacement * n,      ds.overhead_replacement if not isinstance(ds.overhead_replacement, FootprintVector) else ds.overhead_replacement * n),
-            ("Decommissioning",       ds.decom,                ds.overhead_decom),
-        ]
+        if cumulated_replacement:
+            phases = [
+                ("Placement",             ds.placement,            ds.overhead_placement),
+                (f"1 Replacement",        ds.replacement,          ds.overhead_replacement),
+                (f"Cumul. Replacements\n(×{n:.4g})",
+                                          ds.replacement * n,      ds.overhead_replacement if not isinstance(ds.overhead_replacement, FootprintVector) else ds.overhead_replacement * n),
+                ("Decommissioning",       ds.decom,                ds.overhead_decom),
+            ]
+        else : 
+            phases = [
+                ("Placement",             ds.placement,            ds.overhead_placement),
+                (f"1 Replacement",        ds.replacement,          ds.overhead_replacement),
+                ("Decommissioning",       ds.decom,                ds.overhead_decom),
+            ]
 
         dep_labels  = [p[0] for p in phases]
         dep_hw_mid  = np.array([_mid(p[1] , label) - _mid(p[2], label) for p in phases])
