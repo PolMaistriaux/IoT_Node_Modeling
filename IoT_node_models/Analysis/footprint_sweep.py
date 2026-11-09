@@ -310,7 +310,7 @@ def sweep_ebatt(node, label="GWP",
         ax.yaxis.set_minor_formatter(mpl.ticker.NullFormatter())
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
-        ax.set_xticks(capa0 * np.arange(np.ceil(nAAmin), np.floor(nAAmax) ))
+        ax.set_xticks(capa0 * np.arange(np.ceil(nAAmin), np.floor(nAAmax) + 1))
         nyears = node.deployment_strategy.Nyears
         ax.set_title(f"Annual {label} vs battery size  ({nyears} yr)")
         ax.tick_params(axis='x', labelsize=12)

@@ -63,8 +63,13 @@ class Component:
         self.i_sleep = i_sleep
     
     def set_v(self, v):
+        """Set the supply voltage and propagate it to the sleep state and all states
+        (their current is looked up in the {voltage: current} dictionary if any)."""
         self.v = v
-    
+        self.sleep_state.set_v(v)
+        for state in self.state_list:
+            state.set_v(v)
+
     def set_name(self, name):
         self.name = name
 

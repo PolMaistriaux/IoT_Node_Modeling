@@ -171,7 +171,7 @@ class Node_description:
                     component_task_t_active.append(state.get_activeTime())
                     colors_component_task.append(colors[i])  
                     j=j+1
-                if component.get_i_sleep() > 0:
+                if isinstance(component.get_i_sleep(), dict) or component.get_i_sleep()  > 0:
                     component_task_energy.append(component.sleep_state.get_energy())
                     component_task_label.append(component.sleep_state.get_name())
                     component_task_t_active.append(component.sleep_state.get_activeTime())

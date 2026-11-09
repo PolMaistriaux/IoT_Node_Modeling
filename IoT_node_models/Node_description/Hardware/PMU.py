@@ -14,7 +14,7 @@ class PMU:
         self.component_list = component_list
         for component in self.component_list:
             if component.get_v() != v_out:
-                raise Exception("Module connected to PMU with Vout %.1f as a power supply specified at %.1f"%(self.v_out,component._get_v()))
+                raise Exception("Module connected to PMU with Vout %.1f as a power supply specified at %.1f"%(self.v_out,component.get_v()))
 
         self.set_factors(factors)
         
