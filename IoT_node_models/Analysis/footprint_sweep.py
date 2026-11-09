@@ -58,18 +58,18 @@ _COLOR_LISTS = [listBlue, listTurquoise, listGreen, listOrange]
 
 
 # ---------------------------------------------------------------------------
-# sweep_fdata  –  sweep task transmission rate
+# sweep_task_rate  –  sweep task transmission rate
 # ---------------------------------------------------------------------------
 
-def sweep_fdata(node, task, label="GWP",
-                fmin=1, fmax=100, f_step=1,
+def sweep_task_rate(node, task, label="GWP",
+                rate_min=1, rate_max=100, n_rate=1, sweep_log=False,
                 nAA=None, param_values=None, paramType=None,
                 param_setter=None, transport_refs=None,
                 replacementCategories=False,
-                figsize=(7, 6), filename=None, figAppend=None, xlim= None, ylim =None):
+                figsize=(7, 6), filename=None, figAppend=None, xlim= None, ylim =None, colorList=None, linestyle='-'):
     """Plot annual `label` footprint as a function of `task` rate.
 
-    Mirrors the behaviour of ``lora_deployment_sweep_fdata`` / ``deployment_sweep_fdata``
+    Mirrors the behaviour of ``lora_deployment_sweep_task_rate`` / ``deployment_sweep_task_rate``
     from the legacy framework, adapted to the new ``Node_description`` API.
 
     Parameters
@@ -81,7 +81,7 @@ def sweep_fdata(node, task, label="GWP",
         The task whose daily rate is swept (msg/day).
     label : str
         Impact label to plot (must exist in ``node.hardware.footprintStructure``).
-    fmin, fmax, f_step : int
+    rate_min, rate_max, n_rate : int
         Sweep range.
     nAA : list of float, optional
         Battery-capacity multipliers (e.g. ``[1, 3]``).  Battery capacity *and*
@@ -121,8 +121,12 @@ def sweep_fdata(node, task, label="GWP",
     if not param_values:
         param_values = [None]
 
-    fdata   = np.arange(fmin, fmax, f_step)
-    results = np.zeros((len(nAA), len(param_values), len(fdata), 3))  # low/mid/high
+    if sweep_log : 
+        task_rate   = np.logspace(np.log10(rate_min), np.log10(rate_max), n_rate)
+    else:
+        task_rate   = np.arange(rate_min, rate_max, n_rate)
+
+    results = np.zeros((len(nAA), len(param_values), len(task_rate), 3))  # low/mid/high
 
     # --- sweep ---------------------------------------------------------------
     for ip, pv in enumerate(param_values):
@@ -134,7 +138,7 @@ def sweep_fdata(node, task, label="GWP",
             if factors0 is not None:
                 batt.factors = factors0 * AA
 
-            for iff, f in enumerate(fdata):
+            for iff, f in enumerate(task_rate):
                 node.profile.change_task_rate(task, f)
                 node.compute()
                 results[iAA, ip, iff] = _annual_fp(node, label)
@@ -158,27 +162,31 @@ def sweep_fdata(node, task, label="GWP",
     else:
         fig, ax = figAppend
 
-    ax.set_xlabel("Transmission rate [msg/day]")
+    ax.set_xlabel("Task rate [task/day]")
     ax.set_ylabel(ylabel)
 
+    if colorList is None:
+        colorList = _COLOR_LISTS
+
     for iAA, AA in enumerate(nAA):
-        col_list = _COLOR_LISTS[iAA % len(_COLOR_LISTS)]
+        col_list = colorList[iAA % len(colorList)]
         for ip, pv in enumerate(param_values):
-            color = col_list[-(ip + 1)]
+            color = col_list[ip]
             mid   = results[iAA, ip, :, MID]
             lbl   = (f"×{AA} batt" if len(nAA) > 1 else "") + \
                     (f", {pv}" if pv is not None and len(param_values) > 1 else "")
-            ax.plot(fdata, mid, color=color, label=lbl.strip(", "))
+            ax.plot(task_rate, mid, color=color, label=lbl.strip(", "),linestyle=linestyle)
 
     if figAppend is None:
-        ax.set_xscale("log")
-        ax.set_yscale("log")
+        if sweep_log:
+            ax.set_xscale("log")
+            ax.set_yscale("log")
         ax.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
         ax.yaxis.set_minor_formatter(mpl.ticker.NullFormatter())
         ax.set_ylim(ylim)
         ax.set_xlim(xlim)
         for ref in [1, 24, 24 * 12]:
-            if fmin <= ref <= fmax:
+            if rate_min <= ref <= rate_max:
                 ax.axvline(ref, linestyle="dashed", color="black", linewidth=0.8)
         nyears = node.deployment_strategy.Nyears
         ax.set_title(f"Annual {label} vs TX rate  ({nyears} yr)")
@@ -200,8 +208,8 @@ def sweep_ebatt(node, label="GWP",
                 nAAmin=1, nAAmax=6, nAA_step=1,
                 param_values=None, paramType=None,
                 param_setter=None, transport_refs=None,
-                replacementCategories=False,
-                figsize=(7, 6), filename=None, figAppend=None,xlim= None, ylim =None):
+                replacementCategories=False, log_y = False,
+                figsize=(7, 6), filename=None, figAppend=None,xlim= None, ylim =None,colorList=None,linestyle="-"):
     """Plot annual `label` footprint as a function of battery capacity.
 
     Mirrors ``deployment_sweep_ebatt`` from the legacy framework.
@@ -281,23 +289,28 @@ def sweep_ebatt(node, label="GWP",
     ax.set_xlabel("Battery capacity [mAh]")
     ax.set_ylabel(ylabel)
 
-    col_list = _COLOR_LISTS[0]
+    if colorList is None:
+        col_list = _COLOR_LISTS[0]
+    else :
+        col_list = colorList
+
     for ip, pv in enumerate(param_values):
-        color = col_list[-(ip + 1)]
+        color = col_list[ip]
         mid   = results[ip, :, MID]
         lbl   = str(pv) if pv is not None and len(param_values) > 1 else ""
-        ax.plot(x_capa, mid, color=color, label=lbl)
+        ax.plot(x_capa, mid, color=color, label=lbl,linestyle=linestyle)
         iopt = int(np.argmin(mid))
         ax.scatter(x_capa[iopt], mid[iopt], color=color, marker="s", zorder=5)
 
     if figAppend is None:
         yvals = results[:, :, MID]
-        ax.set_yscale("log")
+        if log_y:
+            ax.set_yscale("log")
         ax.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
         ax.yaxis.set_minor_formatter(mpl.ticker.NullFormatter())
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
-        ax.set_xticks(capa0 * np.arange(np.ceil(nAAmin), np.floor(nAAmax) + 1))
+        ax.set_xticks(capa0 * np.arange(np.ceil(nAAmin), np.floor(nAAmax) ))
         nyears = node.deployment_strategy.Nyears
         ax.set_title(f"Annual {label} vs battery size  ({nyears} yr)")
         ax.tick_params(axis='x', labelsize=12)
@@ -319,7 +332,7 @@ def sweep_dnode(node, task, label="GWP",
                 param_values=None, paramType=None,
                 param_setter=None, transport_refs=None,
                 replacementCategories=False,
-                figsize=(7, 6), filename=None,xlim= None, ylim =None):
+                figsize=(7, 6), filename=None,xlim= None, ylim =None, colorList=None,linestyle='-'):
     """Plot annual `label` footprint as a function of node-to-gateway distance.
 
     Mirrors ``lora_deployment_sweep_dnode`` from the legacy framework.
@@ -337,7 +350,7 @@ def sweep_dnode(node, task, label="GWP",
     param_values : list, optional
         Secondary sweep values.
     paramType : str, optional
-        ``"fdata"`` → task rate, ``"rsd"`` → battery self-discharge,
+        ``"task_rate"`` → task rate, ``"rsd"`` → battery self-discharge,
         ``"ebatt"`` → battery capacity multiplier.
     param_setter : callable (node, value), optional
         Custom setter; overrides ``paramType``.
@@ -360,8 +373,8 @@ def sweep_dnode(node, task, label="GWP",
     rep0     = node.deployment_strategy.ReplacementStrategy
     param0   = _save_param_state(node, task, paramType, transport_refs)
 
-    # for fdata paramType we need the initial rate separately
-    if paramType == "fdata":
+    # for task_rate paramType we need the initial rate separately
+    if paramType == "task_rate":
         param0 = node.profile.get_task_rate(task)
 
     if replacementCategories is not False:
@@ -375,7 +388,7 @@ def sweep_dnode(node, task, label="GWP",
     # --- sweep ---------------------------------------------------------------
     for ip, pv in enumerate(param_values):
         if pv is not None:
-            if paramType == "fdata":
+            if paramType == "task_rate":
                 node.profile.change_task_rate(task, pv)
             elif paramType == "ebatt":
                 batt.set_capacity_mAh(capa0 * pv)
@@ -397,7 +410,7 @@ def sweep_dnode(node, task, label="GWP",
     if replacementCategories is not False:
         node.deployment_strategy.ReplacementStrategy = rep0
     if param0 is not None:
-        if paramType == "fdata":
+        if paramType == "task_rate":
             node.profile.change_task_rate(task, param0)
         elif paramType == "ebatt":
             pass  # already restored above via capa0 / factors0
@@ -412,12 +425,16 @@ def sweep_dnode(node, task, label="GWP",
     ax.set_xlabel("Node–gateway distance [km]")
     ax.set_ylabel(ylabel)
 
-    col_list = _COLOR_LISTS[0]
+    if colorList is None:
+        col_list = _COLOR_LISTS[0]
+    else :
+        col_list = colorList
+
     for ip, pv in enumerate(param_values):
-        color = col_list[-(ip + 1)]
+        color = col_list[ip]
         mid   = results[ip, :, MID]
         lbl   = str(pv) if pv is not None and len(param_values) > 1 else ""
-        ax.plot(ddata, mid, color=color, label=lbl)
+        ax.plot(ddata, mid, color=color, label=lbl,linestyle=linestyle)
 
     yvals = results[:, :, MID]
     ax.set_yscale("log")

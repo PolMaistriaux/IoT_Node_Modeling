@@ -48,7 +48,7 @@ listRed  = list(redDict.values())
 ##F15025 BC3908
 orangeDict = {  "Maize"             :"#ffcf56",
                 "Yellow"            :"#f5d547",
-                "Brown  "           :"#F15025",
+                "Brown"             :"#F15025",
                 "Red"               :"#ff0000",
                 "Orange"            :"#fcab10",
                 "Flame  "           :"#e55934",

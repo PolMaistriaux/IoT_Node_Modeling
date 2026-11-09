@@ -154,6 +154,9 @@ class Hardware:
     def set_name(self, name):
         self.name = name
 
+    def set_footprint_structure(self, footprintStructure):
+        self.footprintStructure = footprintStructure
+
     def set_component_list(self, component_list):
         self.component_list = component_list
 

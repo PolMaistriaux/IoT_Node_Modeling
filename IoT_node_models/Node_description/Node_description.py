@@ -140,7 +140,7 @@ class Node_description:
                                             startangle=0,   colors= colors_task, 
                                             wedgeprops={'linewidth': 1.0, 'edgecolor': 'white'},
                                         textprops={'size': 'x-large'},normalize=True)
-        ax[0].set_title("tasks energy repartition",fontsize = 15)
+        ax[0].set_title("Tasks energy repartition",fontsize = 15)
         for i, patch in enumerate(patches0):
             texts0[i].set_color(patch.get_facecolor())
             texts0[i].set_fontsize(15)
