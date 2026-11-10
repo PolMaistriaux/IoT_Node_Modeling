@@ -7,12 +7,13 @@ from ..Node_description import *
 
 # Process node impact factor (in kgCO2 eq.)
 
-kgCO2_p_mm2_n65 = 0.94/100
-kgCO2_p_mm2_n45 = 1.03/100
-kgCO2_p_mm2_n40 = 1.06/100
-kgCO2_p_mm2_n28 = 1.23/100
-kgCO2_p_mm2_n20 = 1.23/100
-kgCO2_p_mm2_n14 = 1.40/100
+kgCO2_p_mm2_n90 = 0.824/100
+kgCO2_p_mm2_n65 = 0.87/100
+kgCO2_p_mm2_n45 = 0.96/100
+kgCO2_p_mm2_n40 = 0.98/100
+kgCO2_p_mm2_n28 = 1.14/100
+kgCO2_p_mm2_n20 = 1.14/100
+kgCO2_p_mm2_n14 = 1.29/100
 
 Base_MCU_Clock_freq = 32
 
@@ -46,7 +47,7 @@ MCU_STM32L4_component = Component(name="STM32L4", category = "Processing",
 
 
 MCU_STM32L4_mm2   = 3.132 * 3.127
-MCU_STM32L4_CFemb = MCU_STM32L4_mm2 * kgCO2_p_mm2_n65 
+MCU_STM32L4_CFemb = MCU_STM32L4_mm2 * kgCO2_p_mm2_n90 
 
 MCU_STM32L4_state_active  = Digital_Processing_State("Active"      ,i_per_MHz = 0.114,freq_MHz=Base_MCU_Clock_freq,cycle = None)
 
