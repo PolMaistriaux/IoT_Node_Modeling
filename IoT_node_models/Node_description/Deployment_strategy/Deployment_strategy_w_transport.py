@@ -44,6 +44,9 @@ class Transport:
     def __repr__(self):
         return (f"Transport(km_fixed={self.km_fixed}, km_p_node={self.km_p_node}, "
                 f"n_node={self.n_node}, footprint_p_km={self.footprint_p_km})")
+    
+    def set_footprint_p_km(self,footprint_p_km, label="GWP"):
+        self.footprint_p_km = footprint_p_km if isinstance(footprint_p_km, dict) else {label: footprint_p_km}
 
 class Dum_Transport(Transport): # To match the model used in the one of the IoT 22 paper
 
@@ -96,3 +99,13 @@ class DeploymentStrategy_wTransport(DeploymentStrategy):
                 self.overhead_decom = self.transport_decom
             footprint = footprint + self.overhead_decom
         return footprint
+
+    def set_footprint_p_km(self,footprint_p_km,label="GWP"):
+        if isinstance(self.transport_placement, Transport):
+            self.transport_placement.set_footprint_p_km(footprint_p_km=footprint_p_km,label=label)
+        if isinstance(self.transport_replacement, Transport):
+                self.transport_replacement.set_footprint_p_km(footprint_p_km=footprint_p_km,label=label)
+        if isinstance(self.transport_decom, Transport):
+                self.transport_decom.set_footprint_p_km(footprint_p_km=footprint_p_km,label=label)
+
+

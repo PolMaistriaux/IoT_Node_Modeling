@@ -37,6 +37,13 @@ class DeploymentStrategy:
 
         self.total_footprint = None
 
+    def set_replacement_strategy(self, replacementCategories):
+        if replacementCategories is not None :
+            if not isinstance(replacementCategories, tuple):
+                raise TypeError("replacementCategories must be a tuple of strings or None")
+            
+        self.ReplacementStrategy = replacementCategories
+    
     def placement_footprint(self, hardware):
         self.overhead_placement = 0
         return hardware.footprint_total

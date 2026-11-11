@@ -125,23 +125,27 @@ class Profile:
         print("-------------------------------------------------")
         print("            Tasks summary                        ")
         print("-------------------------------------------------")
-        print ("{:<12} {:<6} {:<2} ".format( "Task name"," "," :"), end="")
+        print ("{:<12} {:<8} {:<2} ".format( "Task name"," "," :"), end="")
         for task in print_list:
             print("{:<15}".format(task.get_name()),end="")
         print("")
-        print ("{:<12} {:<6} {:<2} ".format( "Times/day","[1/d]"," :"), end="")
+        print ("{:<12} {:<8} {:<2} ".format( "Times/day","[1/d]"," :"), end="")
         for task_index,task in enumerate(print_list):
             print("{:<15}".format(task_rates[task_index]),end="")
         print("")
-        print ("{:<12} {:<6} {:<2} ".format("Tot. durat.", "[s]"," :"), end="")
+        print ("{:<12} {:<8} {:<2} ".format("Energy", "[mJ/t]"," :"), end="")
+        for task_index,task in enumerate(print_list):
+            print("{:<15}".format(task.get_energy_task()),end="")
+        print("")  
+        print ("{:<12} {:<8} {:<2} ".format("Tot. en./d", "[mJ]"," :"), end="")
+        for task_index,task in enumerate(print_list):
+            print("{:<15.4f}".format(task.get_energy_task() *task_rates[task_index]),end="")
+        print("")
+        print ("{:<12} {:<8} {:<2} ".format("Tot. durat.", "[s]"," :"), end="")
         for task_index,task in enumerate(print_list):
             print("{:<15.4f}".format(task.get_taskDuration()*task_rates[task_index]),end="")
         print("")  
-        print ("{:<12} {:<6} {:<2} ".format("Tot. en./d", "[mJ]"," :"), end="")
-        for task_index,task in enumerate(print_list):
-            print("{:<15.4f}".format(task.get_energy_task() *task_rates[task_index]),end="")
-        print("")  
-        print ("{:<12} {:<6} {:<2} {:<15.4f} ".format("Node en./d", "[mJ]"," :",energy))
+        print ("{:<12} {:<8} {:<2} {:<15.4f} ".format("Node en./d", "[mJ]"," :",energy))
         print("-------------------------------------------------")
 
 

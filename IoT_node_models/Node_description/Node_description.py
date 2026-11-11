@@ -171,7 +171,7 @@ class Node_description:
                     component_task_t_active.append(state.get_activeTime())
                     colors_component_task.append(colors[i])  
                     j=j+1
-                if isinstance(component.get_i_sleep(), dict) or component.get_i_sleep()  > 0:
+                if component.sleep_state.energy  > 0:
                     component_task_energy.append(component.sleep_state.get_energy())
                     component_task_label.append(component.sleep_state.get_name())
                     component_task_t_active.append(component.sleep_state.get_activeTime())
@@ -196,7 +196,7 @@ class Node_description:
             plt.savefig(filename+".svg", format="svg")
 
 
-    def plot_footprint(self, label=None, cumulated_replacement=False, filename=None, figsize=(14, 6)):
+    def plot_footprint(self, label=None, cumulated_replacement=False, filename=None, figsize=(14, 6),ylim=None):
         """Hardware-category bars on the left + deployment-phase bars on the right.
 
         The right section shows placement, a single replacement, cumulated replacements and
@@ -276,7 +276,7 @@ class Node_description:
             gridspec_kw={"width_ratios": ratio, "wspace": 0.04},
         )
 
-        all_max = max(np.max(hw_high), np.max(dep_high) if dep_high.size else 0) * 1.3
+        all_max = max(np.max(hw_high), np.max(dep_high) if dep_high.size else 0) * 1.1
         if all_max == 0:
             all_max = 1
 
@@ -287,8 +287,11 @@ class Node_description:
                              yerr=[hw_e_do, hw_e_up], color=hw_color, capsize=5, edgecolor="black")
         ax_hw.bar(hw_cats[-1:], height=[battery], width=barWidth,
                   color=dictColor["UnitedBlue"], edgecolor="black")
-        ax_hw.set_ylabel(ylabel)
-        ax_hw.set_ylim(0, all_max)
+        ax_hw.set_ylabel(ylabel)        
+        if ylim is None :
+            ax_hw.set_ylim(0, all_max)
+        else:
+            ax_hw.set_ylim(ylim)
         ax_hw.tick_params(axis='x', labelrotation=45)
         plt.setp(ax_hw.get_xticklabels(), ha='right')
         ax_hw.set_title("Hardware")
@@ -318,7 +321,10 @@ class Node_description:
         dep_e_do = np.maximum(dep_total - dep_low,  0)
         ax_dep.errorbar(np.arange(len(dep_labels)), dep_total,
                         yerr=[dep_e_do, dep_e_up], fmt='none', color='black', capsize=5)
-        ax_dep.set_ylim(0, all_max)
+        if ylim is None :
+            ax_dep.set_ylim(0, all_max)
+        else:
+            ax_dep.set_ylim(ylim)
         ax_dep.set_yticklabels([])
         ax_dep.tick_params(axis='x', labelrotation=45)
         plt.setp(ax_dep.get_xticklabels(), ha='right')

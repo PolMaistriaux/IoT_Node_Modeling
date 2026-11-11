@@ -342,7 +342,7 @@ class Hardware:
             for state in component.state_list:
                 sum_energy = sum_energy + state.get_energy()
                 print ("{:<12} {:<12} {:<12.4f} {:<12.4f} ".format("     -",state.get_name(),state.get_activeTime(),state.get_energy()))
-            if isinstance(component.get_i_sleep(), dict) or component.get_i_sleep()  > 0:
+            if component.sleep_state.energy >0:
                 sum_energy = sum_energy + component.sleep_state.get_energy()
                 print ("{:<12} {:<12} {:<12.4f} {:<12.4f} ".format("     -",component.sleep_state.get_name(),component.sleep_state.get_activeTime(),component.sleep_state.get_energy()))
         print("-----------------------------------------------------------------")      
