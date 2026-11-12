@@ -93,11 +93,13 @@ class Task:
 class Sleep_Task(Task):
     def __init__(self, components= []):
         self.components = components
-        super().__init__(name = "Sleep")
+        self.sleep_action = Action(name="Sleep") 
+        super().__init__(name = "Sleep",actions=[self.sleep_action])
 
 
     def compute_energy_task(self):
         for i, comp in enumerate(self.components):
             self.energy_task += comp.sleep_state.get_energy()
+        self.sleep_action.energy=self.energy_task
         return self.energy_task
 
