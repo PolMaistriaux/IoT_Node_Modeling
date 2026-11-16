@@ -65,7 +65,7 @@ def sweep_task_rate(node, task, label="GWP",
                 rate_min=1, rate_max=100, n_rate=1, sweep_log=False,
                 nAA=None, param_values=None, paramType=None,
                 param_setter=None, transport_refs=None,
-                replacementCategories=False,
+                replacementCategories=False, fontsize=14,
                 figsize=(7, 6), filename=None, figAppend=None, xlim= None, ylim =None, colorList=None, linestyle='-'):
     """Plot annual `label` footprint as a function of `task` rate.
 
@@ -192,7 +192,7 @@ def sweep_task_rate(node, task, label="GWP",
         ax.set_title(f"Annual {label} vs TX rate  ({nyears} yr)")
         ax.tick_params(axis='x', labelsize=12)
         if len(nAA) > 1 or (param_values and param_values[0] is not None and len(param_values) > 1):
-            ax.legend(fontsize=11)
+            ax.legend(fontsize=fontsize)
 
     if filename is not None:
         fig.savefig(filename + ".svg", format="svg")
@@ -208,7 +208,7 @@ def sweep_ebatt(node, label="GWP",
                 nAAmin=1, nAAmax=6, nAA_step=1,
                 param_values=None, paramType=None,
                 param_setter=None, transport_refs=None,
-                replacementCategories=False, log_y = False,
+                replacementCategories=False, log_y = False, printReplacement = False, fontsize= 14,
                 figsize=(7, 6), filename=None, figAppend=None,xlim= None, ylim =None,colorList=None,linestyle="-"):
     """Plot annual `label` footprint as a function of battery capacity.
 
@@ -253,7 +253,8 @@ def sweep_ebatt(node, label="GWP",
         param_values = [None]
 
     nAA_arr = np.arange(nAAmin, nAAmax + nAA_step * 0.5, nAA_step)
-    results = np.zeros((len(param_values), len(nAA_arr), 3))  # low/mid/high
+    results            = np.zeros((len(param_values), len(nAA_arr), 3))  # low/mid/high
+    res_n_replacements = np.zeros((len(param_values), len(nAA_arr), 3))  # low/mid/high
 
     # --- sweep ---------------------------------------------------------------
     for ip, pv in enumerate(param_values):
@@ -265,7 +266,8 @@ def sweep_ebatt(node, label="GWP",
             if factors0 is not None:
                 batt.factors = factors0 * AA
             node.compute()
-            results[ip, iAA] = _annual_fp(node, label)
+            results             [ip, iAA] = _annual_fp(node, label)
+            res_n_replacements  [ip, iAA] = node.deployment_strategy.n_replacements
 
     # --- restore state -------------------------------------------------------
     batt.set_capacity_mAh(capa0)
@@ -294,6 +296,7 @@ def sweep_ebatt(node, label="GWP",
     else :
         col_list = colorList
 
+    max_res = np.max(results)
     for ip, pv in enumerate(param_values):
         color = col_list[ip]
         mid   = results[ip, :, MID]
@@ -301,7 +304,10 @@ def sweep_ebatt(node, label="GWP",
         ax.plot(x_capa, mid, color=color, label=lbl,linestyle=linestyle)
         iopt = int(np.argmin(mid))
         ax.scatter(x_capa[iopt], mid[iopt], color=color, marker="s", zorder=5)
-
+        ax.scatter([x_capa[0],x_capa[-1]], [mid[0],mid[-1]], color=color, marker="o", zorder=5)
+        ax.text(x_capa[0] , mid[0]+max_res/20 , f'{res_n_replacements[ip,0 ,MID]:.1f} replacements',fontsize = fontsize, ha='left' , va='center')
+        ax.text(x_capa[-1], mid[-1]+max_res/20, f'{res_n_replacements[ip,-1,MID]:.1f} replacements',fontsize = fontsize, ha='right', va='center')
+                
     if figAppend is None:
         yvals = results[:, :, MID]
         if log_y:
@@ -315,7 +321,7 @@ def sweep_ebatt(node, label="GWP",
         ax.set_title(f"Annual {label} vs battery size  ({nyears} yr)")
         ax.tick_params(axis='x', labelsize=12)
         if param_values and param_values[0] is not None and len(param_values) > 1:
-            ax.legend(fontsize=11)
+            ax.legend(fontsize=fontsize)
 
     if filename is not None:
         fig.savefig(filename + ".svg", format="svg")
@@ -331,7 +337,7 @@ def sweep_dnode(node, task, label="GWP",
                 dmin=5, dmax=100, d_step=1,
                 param_values=None, paramType=None,
                 param_setter=None, transport_refs=None,
-                replacementCategories=False,
+                replacementCategories=False, fontsize=14,
                 figsize=(7, 6), filename=None,xlim= None, ylim =None, colorList=None,linestyle='-'):
     """Plot annual `label` footprint as a function of node-to-gateway distance.
 
@@ -445,7 +451,7 @@ def sweep_dnode(node, task, label="GWP",
     ax.set_title(f"Annual {label} vs distance  ({nyears} yr)")
     ax.tick_params(axis='x', labelsize=12)
     if param_values and param_values[0] is not None and len(param_values) > 1:
-        ax.legend(fontsize=11)
+        ax.legend(fontsize=fontsize)
 
     if filename is not None:
         fig.savefig(filename + ".svg", format="svg")
