@@ -346,9 +346,9 @@ class Hardware:
         print ("{:<12} {:<12} {:<12} {:<12.6f}  {:<4} ".format("Total"," "," ",sum_power,"[mW]"))
         print("----------------------------------------------------------------------------------------------------------------")
         if self.get_isPowered() :  
-            print ("{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} ".format("PMU","Vin[V]","Vout[V]","Load Cur.[mA]","In Cur.[mA]","P in [mW]" ,"P loss [mW]")) 
+            print ("{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} ".format("PMU","Vin[V]","Vout[V]","Load Cur.[mA]","In Cur.[mA]","P in [mW]" ,"P quies.[mW]","P loss [mW]"))
             for PMU in self.get_PMU_composition():
-                print ("{:<15} {:<15} {:<15.4f} {:<15.4f} {:<15.4f} {:<15.4f}  {:<15.4f}  ".format(PMU.get_name(),PMU.get_v_in(),PMU.get_v_out(),PMU.get_i_out(),PMU.get_i_in(),PMU.drawn_power,PMU.average_power))
+                print ("{:<15} {:<15} {:<15.4f} {:<15.4f} {:<15.4f} {:<15.4f} {:<15.4f} {:<15.4f}  ".format(PMU.get_name(),PMU.get_v_in(),PMU.get_v_out(),PMU.get_i_out(),PMU.get_i_in(),PMU.drawn_power,PMU.get_quiescent_power(),PMU.get_loss_power()))
             print("----------------------------------------------------------------------------------------------------------------")
             print ("{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} ".format("Battery","Vin[V]","C[mAh]","Iload [mA]","Idrawn [mA]","P [mW]","Lifetime[years]")) 
             battery = self.get_Battery()

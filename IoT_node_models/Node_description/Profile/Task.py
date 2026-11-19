@@ -119,3 +119,25 @@ class Sleep_Task(Task):
         self.sleep_action.energy=self.energy_task
         return self.energy_task
 
+
+class Power_Tree_Task(Task):
+    """Conversion losses of all the PMUs (their Loss state), one action per PMU.
+    The PMUs quiescent consumption is accounted for in the Sleep task."""
+    def __init__(self, PMU_composition=None):
+        super().__init__(name = "Power Tree", actions=[])
+        self.set_PMU_composition(PMU_composition)
+
+    def set_PMU_composition(self, PMU_composition=None):
+        self.PMU_composition = list(PMU_composition) if PMU_composition is not None else []
+        self.actions = [Action(name = f"{PMU.get_name()} loss", componentState = PMU.loss_state)
+                        for PMU in self.PMU_composition]
+
+    def compute_energy_task(self, time_window):
+        """Energy lost in the PMUs conversion over the time window (the PMUs power must have
+        been computed beforehand). Performed once per time window."""
+        self.energy_task = 0
+        for action, PMU in zip(self.actions, self.PMU_composition):
+            action.energy     = PMU.loss_state.get_average_power() * time_window
+            self.energy_task += action.energy
+        return self.energy_task
+

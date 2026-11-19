@@ -39,13 +39,16 @@ class Node_description:
         self.average_power  = 0
         self.lifetime       = 0
         self.sleep_energy   = 0
+        self.power_tree_energy = 0
         self.sleep_task     = Sleep_Task(components = None)
+        self.power_tree_task = Power_Tree_Task(PMU_composition = None)
 
         self.deployment_strategy = deployment_strategy if deployment_strategy is not None else DeploymentStrategy()
 
     def reset_node(self):
         self.energy        = 0
         self.sleep_energy  = 0
+        self.power_tree_energy = 0
         self.average_power = 0
         self.lifetime      = 0
         self.hardware.reset_hardware()
@@ -53,6 +56,7 @@ class Node_description:
 
         self.sleep_task.reset_task()
         self.sleep_task.set_taskDuration(0)
+        self.power_tree_task.reset_task()
 
 
     def compute(self):
@@ -75,12 +79,15 @@ class Node_description:
         self.sleep_task.set_components(components       =self.hardware.get_component_list(), 
                                        PMU_composition  =self.hardware.get_PMU_composition(), 
                                        Battery          =self.hardware.get_Battery())
+        self.power_tree_task.set_PMU_composition(self.hardware.get_PMU_composition())
         #################################################################################
-        # 4 ) Update the information regarding the sleep task and compute the total
+        # 4 ) Update the information regarding the sleep task (incl. PMUs quiescent) and
+        #     the power tree task (PMUs conversion losses), and compute the total
         #################################################################################
-        self.sleep_energy  = self.sleep_task.compute_energy_task(time_window)
+        self.sleep_energy      = self.sleep_task     .compute_energy_task(time_window)
+        self.power_tree_energy = self.power_tree_task.compute_energy_task(time_window)
         #print(f"Sleep power {self.sleep_energy / time_window:.4f}")
-        self.average_power = tasks_power + self.sleep_energy / time_window
+        self.average_power = tasks_power + (self.sleep_energy + self.power_tree_energy) / time_window
         self.energy        = self.average_power * time_window
         
         if abs(100*(self.hardware.Battery.drawn_power - self.average_power)/self.average_power) > 0.00001 :
@@ -116,8 +123,8 @@ class Node_description:
         i=0
         j=0
 
-        plot_task_list      =  self.profile.task_list      + [self.sleep_task]
-        plot_task_rate_list =  self.profile.task_rate_list + [1]
+        plot_task_list      =  self.profile.task_list      + [self.sleep_task, self.power_tree_task]
+        plot_task_rate_list =  self.profile.task_rate_list + [1, 1]
 
         if plotAction :
             for task_index,task in enumerate(plot_task_list) :
@@ -164,26 +171,37 @@ class Node_description:
         i=0
         j=0
         indexModuleSleep = []
-        for component in self.hardware.get_component_list() :
-            
-            if component.state_list and component.get_average_power() > 0:
-                component_label.append(component.get_name())
-                indexModuleSleep.append(j)
-                for state in component.state_list:
-                    component_task_power.append(state.get_average_power())
-                    component_task_label.append(state.get_name())
-                    component_task_duty_cycle.append(state.get_duty_cycle())
-                    colors_component_task.append(colors[i])  
-                    j=j+1
-                if component.sleep_state.get_average_power()  > 0:
-                    component_task_power.append(component.sleep_state.get_average_power())
-                    component_task_label.append(component.sleep_state.get_name())
-                    component_task_duty_cycle.append(component.sleep_state.get_duty_cycle())
-                    colors_component_task.append(colors[i])  
-                    j=j+1
-                i=i+1 
- 
-        labels1 = [('{}'+'\n'*int(100*b>7)+'({:.1f}%)').format(a,100*b)*int(100*b>0.5) for a,b in zip(component_task_label,np.asarray(component_task_power)/self.hardware.get_average_power())]
+
+        # Modules to plot: components, then (if add_PMU_loss) the PMUs and the battery when
+        # they have a non-null average power (quiescent + losses / self-discharge)
+        plot_modules = [(component, "Sleep") for component in self.hardware.get_component_list()
+                        if component.state_list and component.get_average_power() > 0]
+        if add_PMU_loss:
+            plot_modules += [(PMU, "Quiescent") for PMU in self.hardware.get_PMU_composition()
+                             if PMU.get_average_power() > 0]
+            battery = self.hardware.get_Battery()
+            if battery is not None and battery.get_average_power() > 0:
+                plot_modules.append((battery, "Self-disch."))
+
+        for component, sleep_label in plot_modules :
+            component_label.append(component.get_name())
+            indexModuleSleep.append(j)
+            for state in component.state_list:
+                component_task_power.append(state.get_average_power())
+                component_task_label.append(state.get_name())
+                component_task_duty_cycle.append(state.get_duty_cycle())
+                colors_component_task.append(colors[i % len(colors)])
+                j=j+1
+            if component.sleep_state.get_average_power()  > 0:
+                component_task_power.append(component.sleep_state.get_average_power())
+                component_task_label.append(sleep_label)
+                component_task_duty_cycle.append(component.sleep_state.get_duty_cycle())
+                colors_component_task.append(colors[i % len(colors)])
+                j=j+1
+            i=i+1
+
+        modules_power = sum(component_task_power)
+        labels1 = [('{}'+'\n'*int(100*b>7)+'({:.1f}%)').format(a,100*b)*int(100*b>0.5) for a,b in zip(component_task_label,np.asarray(component_task_power)/modules_power)]
         patches1, texts1 = ax[1].pie(component_task_power, labels = labels1, 
                                             shadow=False, 
                                             startangle=0, colors= colors_component_task,
@@ -340,7 +358,7 @@ class Node_description:
             fig.savefig(filename + ".svg", format="svg")
 
     def print_tasks(self):
-        self.profile.print_tasks(additional_tasks=[self.sleep_task], additional_task_rates=[1])
+        self.profile.print_tasks(additional_tasks=[self.sleep_task, self.power_tree_task], additional_task_rates=[1, 1])
 
     def print_components(self):
         self.hardware.print_components()

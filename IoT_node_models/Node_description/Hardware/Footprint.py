@@ -122,6 +122,16 @@ class FootprintVector:
 
     __rmul__ = __mul__
 
+    def __truediv__(self, k):
+        if not np.isscalar(k):
+            raise TypeError("FootprintVector can only be divided by a scalar")
+        if k == 0:
+            raise ZeroDivisionError("FootprintVector cannot be divided by zero")
+        out = self.data / k
+        if k < 0:                       # negative scaling swaps the bounds
+            out = out[:, ::-1]
+        return FootprintVector(self.structure, out)
+
 
     def __repr__(self):
         def fmt(row):
