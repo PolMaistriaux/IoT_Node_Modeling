@@ -9,8 +9,8 @@
 #   -v : Operating voltage of the component in the state
 # Additional variables used:
 #   -Duration if it has a fixed one (not mandatory)
-#   -energy_day   : variable use to computes the overall energy consumed by employing this state in the current use phase scenario
-#   -t_active_day : variable use to computes the overall time spent in this state in the current use phase scenario
+#   -duty_cycle    : fraction of time spent in this state in the current use phase scenario
+#   -average_power : power averaged over time resulting from the time spent in this state
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class State:
     def __init__(self,name = "None", i=0, v=0, duration=None): # constructor
@@ -19,12 +19,12 @@ class State:
         self.v              = v
         self.duration       = duration
         # Result of the model computation
-        self.energy     = 0
-        self.t_active   = 0
+        self.duty_cycle     = 0
+        self.average_power  = 0
 
     def reset_state (self):
-        self.energy   = 0
-        self.t_active = 0
+        self.duty_cycle     = 0
+        self.average_power  = 0
 
     def _resolve_i(self, v=None):
         """Return scalar current. If self.i is a LUT {voltage: current}, look up v
@@ -36,22 +36,29 @@ class State:
             raise KeyError( f"State '{self.name}': voltage {lookup_v} V not found in current LUT (available voltages: {sorted(self.i)})" )
         return self.i[lookup_v]
 
-    def compute_energy(self,duration, paramVI=[None,None]):
+    def compute_power(self, paramVI=None):
+        """Instantaneous power in this state. paramVI = [v, i] optionally overrides
+        the state voltage and/or current (None entries keep the state values)."""
+        if paramVI is None:
+            paramVI = [None, None]
         v_eff = self.v   if paramVI[0] is None else paramVI[0]
         i_eff = self._resolve_i(v_eff) if paramVI[1] is None else paramVI[1]
-        return duration * i_eff * v_eff
+        return i_eff * v_eff
 
-    def add_active_time(self,state_duration,occurence=1, paramVI=[None,None]):
-        this_duration = state_duration *occurence
-        self.t_active = self.t_active + this_duration
-        self.energy   = self.energy   + self.compute_energy(duration=this_duration,paramVI=paramVI)
+    def add_duty_cycle(self, duty_cycle, paramVI=None):
+        """Register a fraction of time spent in this state (with optional [v, i] override)."""
+        self.duty_cycle    = self.duty_cycle    + duty_cycle
+        self.average_power = self.average_power + duty_cycle * self.compute_power(paramVI=paramVI)
 
 
-    def get_activeTime(self):
-        return self.t_active
+    def get_duty_cycle(self):
+        return self.duty_cycle
 
-    def get_energy(self):
-        return self.energy
+    def get_average_power(self):
+        return self.average_power
+
+    def get_power(self):
+        return self.compute_power()
 
     def get_i(self):
         return self._resolve_i()
@@ -65,9 +72,6 @@ class State:
     def get_duration(self):
         return self.duration
 
-
-    def set_activeTime(self, t_active):
-        self.t_active = t_active
     
     def set_i (self, i):
         self.i = i

@@ -49,7 +49,8 @@ class Action:
         self.name = name
 
     def compute_energy(self):
-        self.energy = self.get_componentState().compute_energy(duration = self.stateDuration, paramVI = self.get_paramVI() )
+        """Energy of the action: power of the component state (with optional [v, i] override) times the action duration."""
+        self.energy = self.get_componentState().compute_power(paramVI = self.get_paramVI()) * self.stateDuration
         return self.energy
 
 
@@ -68,7 +69,3 @@ class Digital_Processing_Action(Action):
     def set_cycle_count (self, cycle_count):
         self.cycle_count  = cycle_count
         self.stateDuration = self.cycle_count/(self.componentState.get_freq_MHz()*1e6)
-
-    def compute_energy(self):
-        self.energy = self.get_componentState().compute_energy(duration = self.stateDuration, paramVI = self.get_paramVI() )
-        return self.energy

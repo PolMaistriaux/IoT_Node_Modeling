@@ -91,15 +91,18 @@ class Task:
 
 
 class Sleep_Task(Task):
-    def __init__(self, components= []):
-        self.components = components
+    def __init__(self, components= None):
+        self.components = components if components is not None else []
         self.sleep_action = Action(name="Sleep") 
         super().__init__(name = "Sleep",actions=[self.sleep_action])
 
 
-    def compute_energy_task(self):
-        for i, comp in enumerate(self.components):
-            self.energy_task += comp.sleep_state.get_energy()
+    def compute_energy_task(self, time_window):
+        """Energy spent in sleep over the time window, from the components sleep average power
+        (the components power must have been computed beforehand). Performed once per time window."""
+        self.energy_task = 0
+        for comp in self.components:
+            self.energy_task += comp.sleep_state.get_average_power() * time_window
         self.sleep_action.energy=self.energy_task
         return self.energy_task
 

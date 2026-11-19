@@ -13,8 +13,9 @@ from .Footprint import *
 #   -Operating voltage in sleep mode
 #   -List of the different component state in which it can operate (sleep is referred a default state)
 # Additional variables used:
-#   -energy_day   : overall energy consumed by the component over the day
-#   -t_active_day : overall time spent in active (not in sleep state) during the day
+#   -average_power   : power consumed by the component, averaged over time
+#   -average_current : current drawn by the component, averaged over time
+#   -duty_cycle      : fraction of time spent in active (not in sleep state)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Component:
     def __init__(self,name = "None", v=0, i_sleep =0, factors=None, category=None): # constructor
@@ -24,17 +25,13 @@ class Component:
         self.state_list    = []
         self.sleep_state   = State("Sleep",v = v, i = i_sleep, duration = None)
         # Result of the model computation
-        self.energy          = 0
         self.average_power   = 0
         self.average_current = 0
-        self.t_active        = 0
+        self.duty_cycle      = 0
 
         self.set_factors(factors)
 
         self.category = category 
-    
-    def get_energy(self):
-        return self.energy
     
     def get_average_power(self):
         return self.average_power
@@ -42,8 +39,8 @@ class Component:
     def get_average_current(self):
         return self.average_current
     
-    def get_activeTime(self):
-        return self.t_active
+    def get_duty_cycle(self):
+        return self.duty_cycle
     
     def get_i_sleep(self):
         return self.i_sleep
@@ -61,6 +58,7 @@ class Component:
 
     def set_i_sleep (self, i_sleep):
         self.i_sleep = i_sleep
+        self.sleep_state.set_i(i_sleep)
     
     def set_v(self, v):
         """Set the supply voltage and propagate it to the sleep state and all states
@@ -78,44 +76,37 @@ class Component:
             raise TypeError("factors must be an ImpactVector or None")
         self.factors = factors
 
-    def compute_energy(self, time_window):
-        time = time_window
+    def compute_power(self):
+        """Average power of the component. The duty cycle of each state must have been
+        registered beforehand (by the Profile); the component sleeps the rest of the time."""
         ##############################################
-        # 1 ) Reset the different sleep variables
+        # 1 ) Reset the sleep variables
         ##############################################
-        # Do not reset the t_active of each component state, as they have been update by the tasks
-        self.energy                   = 0
+        # Do not reset the duty cycle of each component state, as they have been updated by the tasks
+        self.average_power = 0
         self.sleep_state.reset_state()
 
-        if not self.state_list and self.sleep_state.get_i() == 0:
-            return 0
-
         ########################################################
-        # 2 ) For each component state, compute the energy spent
+        # 2 ) For each component state, accumulate the power
         ########################################################
+        duty_cycle = 0
         for state in self.state_list:
-            # Accumulate overall energy consumed by the component
-            self.energy = self.energy + state.get_energy()
-            # Calculate time spent in standby/default/sleep mode
-            time = time - state.get_activeTime()
+            self.average_power = self.average_power + state.get_average_power()
+            duty_cycle         = duty_cycle + state.get_duty_cycle()
 
-        if time <0:
-            raise Exception("Error : With task registered, the node is busy for more than a day")  
-            return
+        if duty_cycle > 1:
+            raise Exception("Error : With task registered, the component %s is busy for more than the time window"%(self.name))
 
         ########################################################
-        # 3 ) Update the sleep data of the component
-        ########################################################  
-        self.sleep_state.set_duration(   time)
-        self.sleep_state.add_active_time(time)
-        sleep_energy = self.sleep_state.get_energy()
+        # 3 ) Sleep the remaining of the time
+        ########################################################
+        self.sleep_state.add_duty_cycle(1 - duty_cycle)
 
-        self.t_active        = time_window - time
-        self.energy          = self.energy + sleep_energy
-        self.average_power   = self.energy/time_window
-        self.average_current = self.energy /(self.v * time_window)
+        self.duty_cycle      = duty_cycle
+        self.average_power   = self.average_power + self.sleep_state.get_average_power()
+        self.average_current = self.average_power / self.v if self.v != 0 else 0
 
-        return self.energy
+        return self.average_power
 
     
     def add_state(self, state):
@@ -128,11 +119,9 @@ class Component:
             self.state_list.append(state)
 
     def reset_component(self):
-        self.energy          = 0
         self.average_current = 0
         self.average_power   = 0
-        self.t_active        = 0
+        self.duty_cycle      = 0
         self.sleep_state.reset_state()
-        self.sleep_state.set_duration(0)
         for state in self.state_list:
             state.reset_state()

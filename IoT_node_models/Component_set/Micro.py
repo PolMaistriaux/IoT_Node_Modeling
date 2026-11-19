@@ -10,8 +10,8 @@ Micro_ICS40310_component      = Component(name="ICS-40310"              , catego
 Micro_ICS40212_component      = Component(name="ICS-40212"              , category = "Sensing", v      =Base_Micro_Voltage, i_sleep=0.000)
 Micro_SPM_component           = Component(name="SPM0408LE5H"            , category = "Sensing", v      =Base_Micro_Voltage, i_sleep=0.000)
 Micro_Digital_component       = Component(name="Digital Micro IC"       , category = "Sensing", v      =Base_Micro_Voltage, i_sleep=0.000)
-Micro_MP23DB01HP_LP_component = Component(name="MP23DB01HP : Low-Power" , category = "Sensing", v      =Base_Micro_Voltage, i_sleep=0.000)
-Micro_MP23DB01HP_component    = Component(name="MP23DB01HP : High-Perf" , category = "Sensing", v      =Base_Micro_Voltage, i_sleep=0.000)
+Micro_MP23DB01HP_LP_component = Component(name="MP23DB01 LP"            , category = "Sensing", v      =Base_Micro_Voltage, i_sleep=0.000)
+Micro_MP23DB01HP_component    = Component(name="MP23DB01 HP"            , category = "Sensing", v      =Base_Micro_Voltage, i_sleep=0.000)
 
 
 Micro_ICS40310_component      .add_state(State("Active",i = 0.019                       ,duration = None)) #ICS-40310
