@@ -14,17 +14,20 @@ from .Footprint import *
 # by the PMUs, so that its power reflects the consumption of the supplied hardware.
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 class Battery(Component):
-    def __init__(self,name = "None", v = 0, capacity_mAh = 0, i = 1, selfdischarge_p_year = 0, factors=None, category=None): # constructor
-        super().__init__(name = name, v = v, i_sleep = i, factors = factors, category = category)
+    def __init__(self,name = "None", v = 0, capacity_mAh = 0, i_load = 1, selfdischarge_p_year = 0, factors=None, category=None): # constructor
+        
         self.capacity_mAh           = capacity_mAh
         self.selfdischarge_p_year   = selfdischarge_p_year
+        self.selfdischarge_current  = self.capacity_mAh* (self.selfdischarge_p_year /100) /(24*365)
+        self.i_load                 = i_load
+
+        super().__init__(name = name, v = v, i_sleep = self.selfdischarge_current , factors = factors, category = category)
+        
         self.lifetime               = 0
-        self.set_i(i)
 
     def compute_lifetime(self):
         """Battery lifetime [years] from the drawn current and the self-discharge."""
-        selfdischarge_i = self.capacity_mAh * (self.selfdischarge_p_year /100) /(24*365)
-        lifetime_hour = self.capacity_mAh/(self.i+selfdischarge_i)
+        lifetime_hour = self.capacity_mAh/(self.drawn_current)
         self.lifetime = lifetime_hour/(24*365)
         return self.lifetime
 
@@ -36,9 +39,14 @@ class Battery(Component):
 
         self.duty_cycle      = 0
         self.average_power   = self.sleep_state.get_average_power()
-        self.average_current = self.i
+        self.average_current = self.i_sleep 
+        
+        self.drawn_power   = (self.i_load+self.i_sleep)*self.v
+        self.drawn_current = (self.i_load+self.i_sleep)
+
         self.compute_lifetime()
-        return self.average_power
+
+        return self.drawn_power
 
     def add_state(self, state):
         raise Exception("Error : Battery only has a Sleep state, additional states cannot be added")
@@ -47,8 +55,8 @@ class Battery(Component):
         super().reset_component()
         self.lifetime = 0
 
-    def get_i(self):
-        return self.i
+    def get_i_load(self):
+        return self.i_load
 
     def get_capacity_mAh(self):
         return self.capacity_mAh
@@ -59,13 +67,19 @@ class Battery(Component):
     def get_lifetime(self):
         return self.lifetime
 
-    def set_i(self, i):
+    def set_i_load(self, i_load):
         """Set the current drawn from the battery (also the Sleep state current)."""
-        self.i = i
-        self.set_i_sleep(i)
+        self.i_load = i_load
+        self.drawn_current = self.i_load + self.selfdischarge_current
 
     def set_capacity_mAh(self, capacity_mAh):
         self.capacity_mAh = capacity_mAh
+        self.selfdischarge_current  = self.capacity_mAh* (self.selfdischarge_p_year /100) /(24*365)
+        self.set_i_sleep(self.selfdischarge_current)
+        self.drawn_current = self.i_load + self.selfdischarge_current
 
     def set_selfdischarge_p_year(self, selfdischarge_p_year):
         self.selfdischarge_p_year = selfdischarge_p_year
+        self.selfdischarge_current  = self.capacity_mAh* (self.selfdischarge_p_year /100) /(24*365)
+        self.set_i_sleep(self.selfdischarge_current)
+        self.drawn_current = self.i_load + self.selfdischarge_current

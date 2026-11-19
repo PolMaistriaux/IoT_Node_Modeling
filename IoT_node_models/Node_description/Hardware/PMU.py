@@ -39,15 +39,22 @@ class PMU(Component):
         been computed beforehand. The PMU stays in its single Sleep state, at i_in."""
         self.compute_i_out()
         self.i_in = self.compute_i_in()
-        self.set_i_sleep(self.i_in)
+
+        p_load = self.i_out * self.v_out
+        p_in   = self.i_in  * self.v
 
         self.sleep_state.reset_state()
-        self.sleep_state.add_duty_cycle(1)
+        self.sleep_state.add_duty_cycle(1, power=p_in-p_load)
 
         self.duty_cycle      = 0
+
         self.average_power   = self.sleep_state.get_average_power()
-        self.average_current = self.i_in
-        return self.average_power
+        self.average_current = self.average_power/ self.v
+
+        self.drawn_power   = self.i_in*self.v
+        self.drawn_current = self.i_in
+
+        return self.drawn_power
 
     def add_state(self, state):
         raise Exception("Error : PMU only has a Sleep state, additional states cannot be added")

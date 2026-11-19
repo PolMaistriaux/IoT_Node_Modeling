@@ -109,7 +109,7 @@ class Profile:
             # Update the duty cycle of the component states used by each action
             for action in task.actions:
                 duty_cycle = action.get_stateDuration() * task_rate / self.time_window
-                (action.get_componentState()).add_duty_cycle(duty_cycle, paramVI = action.get_paramVI() )
+                (action.get_componentState()).add_duty_cycle(duty_cycle , current = action.get_param_i())
 
         return self.average_power
 

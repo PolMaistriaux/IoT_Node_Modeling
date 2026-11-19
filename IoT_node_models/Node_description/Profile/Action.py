@@ -13,7 +13,7 @@ class Action:
         self.componentState   = componentState
         self.stateDuration = stateDuration
         self.energy        = 0
-        self.paramVI       = [None,None] #Only required if the action changes the state info
+        self.param_i       = None
 
     def reset_energy(self):
         self.energy = 0
@@ -30,8 +30,8 @@ class Action:
     def get_energy(self):
         return self.energy
     
-    def get_paramVI(self):
-        return self.paramVI
+    def get_param_i(self):
+        return self.param_i
     
     def set_componentState(self, componentState):
         self.componentState = componentState
@@ -40,17 +40,14 @@ class Action:
         self.stateDuration = stateDuration
         
     def set_param_i(self, i=0):
-        self.paramVI[1] = i
-    
-    def set_param_v(self, v=0):
-        self.paramVI[0] = v
+        self.param_i = i
     
     def set_name(self, name):
         self.name = name
 
     def compute_energy(self):
         """Energy of the action: power of the component state (with optional [v, i] override) times the action duration."""
-        self.energy = self.get_componentState().compute_power(paramVI = self.get_paramVI()) * self.stateDuration
+        self.energy = self.get_componentState().compute_power(current = self.param_i) * self.stateDuration
         return self.energy
 
 

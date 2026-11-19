@@ -44,6 +44,7 @@ class Hardware:
     def __init__(self,name = "None", footprintStructure=None, categories=()): # constructor
         self.name = name
         self.average_power = 0
+        self.supply_power  = 0
         self.component_list = []
 
         # Powered node
@@ -161,6 +162,7 @@ class Hardware:
 
     def reset_hardware(self):
         self.average_power = 0
+        self.supply_power  = 0
         for component in self._footprint_components():
             component.reset_component()
 
@@ -176,18 +178,18 @@ class Hardware:
         self.average_power = 0
         for component in self.component_list:
             self.average_power = self.average_power + component.compute_power()
-
+            
         if self.isPowered:
             i_battery =0
             for PMU in self.PMU_composition:
                 PMU.compute_power()
                 i_battery = i_battery + PMU.get_i_in()
 
-            self.Battery.set_i(i_battery)
+            self.Battery.set_i_load(i_battery)
             self.Battery.compute_power()
             self.lifetime =self.Battery.get_lifetime()
             if verbose:
-                print('Node lifetime is %.1f years. Average current drawn from battery : %.3f [mA]'%(self.Battery.get_lifetime(), self.Battery.get_i() ))
+                print('Node lifetime is %.1f years. Average current drawn from battery : %.3f [mA]'%(self.Battery.get_lifetime(), self.Battery.drawn_current ))
         else:
             self.lifetime = 0
             if verbose:
@@ -340,18 +342,18 @@ class Hardware:
             if component.sleep_state.get_average_power() >0:
                 sum_power = sum_power + component.sleep_state.get_average_power()
                 print ("{:<12} {:<12} {:<12.6f} {:<12.6f} ".format("     -",component.sleep_state.get_name(),100*component.sleep_state.get_duty_cycle(),component.sleep_state.get_average_power()))
-        print("-----------------------------------------------------------------")      
+        print("----------------------------------------------------------------------------------------------------------------")      
         print ("{:<12} {:<12} {:<12} {:<12.6f}  {:<4} ".format("Total"," "," ",sum_power,"[mW]"))
-        print("------------------------------------------------------------------------------------")
+        print("----------------------------------------------------------------------------------------------------------------")
         if self.get_isPowered() :  
-            print ("{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} ".format("PMU","Vin[V]","Vout[V]","Power In [mW]","Load Cur.[mA]","In Cur.[mA]")) 
+            print ("{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} ".format("PMU","Vin[V]","Vout[V]","Load Cur.[mA]","In Cur.[mA]","P in [mW]" ,"P loss [mW]")) 
             for PMU in self.get_PMU_composition():
-                print ("{:<12} {:<12} {:<12.4f} {:<12.4f} {:<12.4f} {:<12.4f}  ".format(PMU.get_name(),PMU.get_v_in(),PMU.get_v_out(),PMU.get_v_in()*PMU.get_i_in(),PMU.get_i_out(),PMU.get_i_in()))
-            print("------------------------------------------------------------------------------------")
-            print ("{:<12} {:<12} {:<12} {:<12} {:<12}  ".format("Battery","Vin[V]","C[mAh]","I [mA]","Lifetime[years]")) 
+                print ("{:<15} {:<15} {:<15.4f} {:<15.4f} {:<15.4f} {:<15.4f}  {:<15.4f}  ".format(PMU.get_name(),PMU.get_v_in(),PMU.get_v_out(),PMU.get_i_out(),PMU.get_i_in(),PMU.drawn_power,PMU.average_power))
+            print("----------------------------------------------------------------------------------------------------------------")
+            print ("{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} ".format("Battery","Vin[V]","C[mAh]","Iload [mA]","Idrawn [mA]","P [mW]","Lifetime[years]")) 
             battery = self.get_Battery()
-            print ("{:<12} {:<12} {:<12.4f} {:<12.4f} {:<12.4f}  ".format(battery.get_name(), battery.get_v(), battery.get_capacity_mAh(), battery.get_i(), battery.get_lifetime()))
-            print("------------------------------------------------------------------------------------")
+            print ("{:<15} {:<15} {:<15.4f} {:<15.4f} {:<15.4f} {:<15.4f} {:<15.4f}  ".format(battery.get_name(), battery.get_v(), battery.get_capacity_mAh(), battery.get_i_load(),battery.drawn_current,battery.drawn_power, battery.get_lifetime()))
+            print("----------------------------------------------------------------------------------------------------------------")
 
 
 

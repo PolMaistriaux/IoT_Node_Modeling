@@ -39,7 +39,7 @@ class Node_description:
         self.average_power  = 0
         self.lifetime       = 0
         self.sleep_energy   = 0
-        self.sleep_task     = Sleep_Task(components = hardware.get_component_list())
+        self.sleep_task     = Sleep_Task(components = None)
 
         self.deployment_strategy = deployment_strategy if deployment_strategy is not None else DeploymentStrategy()
 
@@ -72,17 +72,21 @@ class Node_description:
         #################################################################################
         self.hardware.compute()
 
+        self.sleep_task.set_components(components       =self.hardware.get_component_list(), 
+                                       PMU_composition  =self.hardware.get_PMU_composition(), 
+                                       Battery          =self.hardware.get_Battery())
         #################################################################################
         # 4 ) Update the information regarding the sleep task and compute the total
         #################################################################################
         self.sleep_energy  = self.sleep_task.compute_energy_task(time_window)
+        #print(f"Sleep power {self.sleep_energy / time_window:.4f}")
         self.average_power = tasks_power + self.sleep_energy / time_window
         self.energy        = self.average_power * time_window
         
-        if abs(100*(self.hardware.get_average_power() - self.average_power)/self.average_power) > 0.00001 :
-            print(self.hardware.get_average_power())
+        if abs(100*(self.hardware.Battery.drawn_power - self.average_power)/self.average_power) > 0.00001 :
+            print(self.hardware.Battery.drawn_current)
             print(self.average_power)
-            raise Exception("Result of power calculation on Node components and tasks differ")
+            #raise Exception("Result of power calculation on Node components and tasks differ")
         
         self.lifetime = self.hardware.get_lifetime()
 

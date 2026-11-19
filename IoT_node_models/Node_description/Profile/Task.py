@@ -96,6 +96,18 @@ class Sleep_Task(Task):
         self.sleep_action = Action(name="Sleep") 
         super().__init__(name = "Sleep",actions=[self.sleep_action])
 
+    def set_components(self, components=[], PMU_composition=[], Battery=None):
+        def _as_list(value):
+            # None -> [], list (possibly empty) -> copy of the list, single object -> [object]
+            if value is None:
+                return []
+            if isinstance(value, (list, tuple)):
+                return list(value)
+            return [value]
+
+        self.components = (list(components) + list(PMU_composition) 
+                          + ([Battery] if Battery is not None else []) )
+
 
     def compute_energy_task(self, time_window):
         """Energy spent in sleep over the time window, from the components sleep average power
@@ -103,6 +115,7 @@ class Sleep_Task(Task):
         self.energy_task = 0
         for comp in self.components:
             self.energy_task += comp.sleep_state.get_average_power() * time_window
+            #print(f"SleepTask : Comp: {comp.name} :  {comp.sleep_state.get_average_power()}mW")
         self.sleep_action.energy=self.energy_task
         return self.energy_task
 

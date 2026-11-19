@@ -36,19 +36,19 @@ class State:
             raise KeyError( f"State '{self.name}': voltage {lookup_v} V not found in current LUT (available voltages: {sorted(self.i)})" )
         return self.i[lookup_v]
 
-    def compute_power(self, paramVI=None):
-        """Instantaneous power in this state. paramVI = [v, i] optionally overrides
-        the state voltage and/or current (None entries keep the state values)."""
-        if paramVI is None:
-            paramVI = [None, None]
-        v_eff = self.v   if paramVI[0] is None else paramVI[0]
-        i_eff = self._resolve_i(v_eff) if paramVI[1] is None else paramVI[1]
+    def compute_power(self, power=None, current = None):
+        """Instantaneous power in this state. power optionally overrides
+        the power (None entries keep the state values)."""
+        if power is not None:
+            return power
+        v_eff = self.v                 
+        i_eff = self._resolve_i(v_eff) if current is None else current
         return i_eff * v_eff
 
-    def add_duty_cycle(self, duty_cycle, paramVI=None):
+    def add_duty_cycle(self, duty_cycle, power=None,current=None):
         """Register a fraction of time spent in this state (with optional [v, i] override)."""
         self.duty_cycle    = self.duty_cycle    + duty_cycle
-        self.average_power = self.average_power + duty_cycle * self.compute_power(paramVI=paramVI)
+        self.average_power = self.average_power + duty_cycle * self.compute_power(power=power, current = current)
 
 
     def get_duty_cycle(self):
