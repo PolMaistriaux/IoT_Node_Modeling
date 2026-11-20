@@ -106,6 +106,31 @@ class Hardware:
 
         return Component_instance
 
+    def remove(self, Component_instance):
+        """Remove a component or PMU from the node's lists (identity match).
+        The battery is a single attribute, not a list, so it is not handled here."""
+        if isinstance(Component_instance, Battery):
+            self.Battery = None
+        elif isinstance(Component_instance, PMU):
+            target = self.PMU_composition
+        elif isinstance(Component_instance, Component):
+            target = self.component_list
+        else:
+            raise Exception("Error : Component is not of type Component or PMU, type is %s"%type(Component_instance))
+
+        for i, item in enumerate(target):
+            if item is Component_instance:
+                del target[i]
+                break
+        else:
+            raise ValueError(f"{Component_instance.name}: not found in node")
+
+        self._invalidate_footprint()
+        if not isinstance(Component_instance, PMU):
+            self.isPowered = False
+
+        return Component_instance
+
     def _invalidate_footprint(self):
         self.footprint_by_category = self.footprint_total = None
         self.footprint_by_category_samples = self.footprint_total_samples = None
