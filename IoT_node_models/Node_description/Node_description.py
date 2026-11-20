@@ -91,9 +91,9 @@ class Node_description:
         self.energy        = self.average_power * time_window
         
         if abs(100*(self.hardware.Battery.drawn_power - self.average_power)/self.average_power) > 0.00001 :
-            print(self.hardware.Battery.drawn_current)
+            print(self.hardware.Battery.drawn_power)
             print(self.average_power)
-            #raise Exception("Result of power calculation on Node components and tasks differ")
+            raise Exception("Result of power calculation on Node components and tasks differ")
         
         self.lifetime = self.hardware.get_lifetime()
 

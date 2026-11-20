@@ -126,3 +126,13 @@ class LDO(PMU):
     def compute_i_in(self):
         """LDO: input current is the output current plus the quiescent current."""
         return self.i_out + self.i_q
+
+################################
+class SMPS(PMU):
+    def __init__(self,name = "None",  v_out = 0, i_q = 0, v_in = 0, efficiency = 1, component_list = None, factors=None, category=None): # constructor
+        self.efficiency = efficiency
+        super().__init__(name = name, v_out = v_out,  v_in = v_in, i_q = i_q, component_list = component_list, factors=factors, category=category)
+
+    def compute_i_in(self):
+        """LDO: input current is the output current plus the quiescent current."""
+        return (self.i_out*self.v_out/self.v)/self.efficiency + self.i_q
