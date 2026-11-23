@@ -6,12 +6,21 @@ from ..Node_description import *
 
 Base_Micro_Voltage = 3.3
 
+####################
+# Standard Micro
+####################
 Micro_ICS40310_component      = Component(name="ICS-40310"              , category = "Sensing", v      =Base_Micro_Voltage, i_sleep=0.000)
 Micro_ICS40212_component      = Component(name="ICS-40212"              , category = "Sensing", v      =Base_Micro_Voltage, i_sleep=0.000)
 Micro_SPM_component           = Component(name="SPM0408LE5H"            , category = "Sensing", v      =Base_Micro_Voltage, i_sleep=0.000)
 Micro_Digital_component       = Component(name="Digital Micro IC"       , category = "Sensing", v      =Base_Micro_Voltage, i_sleep=0.000)
 Micro_MP23DB01HP_LP_component = Component(name="MP23DB01 LP"            , category = "Sensing", v      =Base_Micro_Voltage, i_sleep=0.000)
 Micro_MP23DB01HP_component    = Component(name="MP23DB01 HP"            , category = "Sensing", v      =Base_Micro_Voltage, i_sleep=0.000)
+
+####################
+# Ultrasonic Micro
+####################
+Micro_SPH0641LU4H_component    = Component(name="SPH0641LU4H"            , category = "Sensing", v      =Base_Micro_Voltage, i_sleep=0.000)
+
 
 
 Micro_ICS40310_component      .add_state(State("Active",i = 0.019                       ,duration = None)) #ICS-40310
@@ -20,6 +29,7 @@ Micro_SPM_component           .add_state(State("Active",i = {1.8: 0.350 , 3.3: 0
 Micro_Digital_component       .add_state(State("Active",i = 0.650                       ,duration = None)) #Digital one 
 Micro_MP23DB01HP_LP_component .add_state(State("Active",i = {1.8: 0.285 , 3.3: 0.285}   ,duration = None)) #MP23DB01HP : Low-Power  
 Micro_MP23DB01HP_component    .add_state(State("Active",i = {1.8: 0.880 , 3.3: 0.880}   ,duration = None)) #MP23DB01HP : High-Perf  
+Micro_SPH0641LU4H_component   .add_state(State("Active",i = {1.8: 0.845 , 3.3: 0.845}   ,duration = None)) #Ultrasonic mic 
 
 ############################
 # MCU registry
@@ -32,6 +42,7 @@ Micro_components = {
     "DigitalMic"            : Micro_Digital_component,
     "MP23DB01HP Low Perf"   : Micro_MP23DB01HP_LP_component,
     "MP23DB01HP"            : Micro_MP23DB01HP_component,
+    "SPH0641LU4H"           : Micro_SPH0641LU4H_component,
 }
 
 Micro_CFemb = {
@@ -41,5 +52,6 @@ Micro_CFemb = {
     "DigitalMic"            : 0,
     "MP23DB01HP Low Per"    : 0,
     "MP23DB01HP"            : 0,
+    "SPH0641LU4H"           : 0,
 }
 
